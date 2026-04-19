@@ -1,0 +1,282 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 14% 96%;
+    --foreground: 220 14% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 14% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 14% 10%;
+    --primary: 224 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 14% 10%;
+    --muted: 220 9% 46%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 224 100% 50%;
+    --radius: 0px;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 14% 10%;
+    --sidebar-primary: 224 100% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 14% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 224 100% 50%;
+
+    /* AgriFlo - Agricultural Fertilizer Logistics System */
+    /* Government green theme - professional, clean */
+    --agriflo-primary: #15803d;        /* Green-700 - government/agriculture feel */
+    --agriflo-background: #f8fafc;     /* Slate-50 - clean light bg */
+    --agriflo-surface: #FFFFFF;
+    --agriflo-text: #1e293b;           /* Slate-800 */
+    --agriflo-muted: #64748b;          /* Slate-500 */
+    --agriflo-border: #e2e8f0;         /* Slate-200 */
+    --agriflo-accent: #0d9488;         /* Teal-600 - complementary accent */
+    --agriflo-warning: #ea580c;        /* Orange-600 - urgency */
+    --agriflo-zebra: #f1f5f9;          /* Slate-100 - subtle zebra striping */
+    --agriflo-hover: #f0fdf4;          /* Green-50 - hover state */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+@layer components {
+  .fdms-table {
+    @apply w-full border-collapse;
+  }
+
+  .fdms-table th {
+    @apply text-left font-semibold text-xs uppercase tracking-wider text-muted-foreground py-2 px-3 border-b border-border bg-white;
+    height: 32px;
+  }
+
+  .fdms-table td {
+    @apply py-2 px-3 border-b border-border;
+    height: 32px;
+  }
+
+  .fdms-table tr:nth-child(even) {
+    background-color: var(--fdms-zebra);
+  }
+
+  .fdms-table tr:hover {
+    background-color: var(--fdms-hover);
+  }
+
+  .fdms-table tr.selected {
+    background-color: var(--fdms-hover);
+    border-left: 3px solid var(--fdms-primary);
+  }
+
+  .fdms-input {
+    @apply w-full h-8 px-3 border border-border bg-white text-sm;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .fdms-input:focus {
+    outline: none;
+    border-color: var(--fdms-primary);
+    box-shadow: 0 0 0 1px var(--fdms-primary);
+  }
+
+  .fdms-btn {
+    @apply inline-flex items-center justify-center h-8 px-4 text-xs font-medium transition-colors;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .fdms-btn-primary {
+    @apply fdms-btn bg-[#15803d] text-white hover:bg-green-800;
+  }
+
+  .fdms-btn-secondary {
+    @apply fdms-btn bg-white border border-border text-foreground hover:bg-gray-50;
+  }
+
+  .fdms-btn-success {
+    @apply fdms-btn bg-[#0d9488] text-white hover:bg-teal-700;
+  }
+
+  .fdms-btn-danger {
+    @apply fdms-btn bg-[#dc2626] text-white hover:bg-red-700;
+  }
+
+  .fdms-btn:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .fdms-badge {
+    @apply inline-flex items-center px-2 py-0.5 text-xs font-medium;
+  }
+
+  .fdms-badge-pending {
+    @apply fdms-badge bg-amber-100 text-amber-800;
+  }
+
+  .fdms-badge-approved {
+    @apply fdms-badge bg-emerald-100 text-emerald-800;
+  }
+
+  .fdms-badge-declined {
+    @apply fdms-badge bg-red-100 text-red-800;
+  }
+
+  .fdms-badge-cleared {
+    @apply fdms-badge bg-blue-100 text-blue-800;
+  }
+
+  .fdms-panel {
+    @apply bg-white border border-border;
+  }
+
+  .fdms-split-pane {
+    @apply flex h-full;
+  }
+
+  .fdms-split-pane-left {
+    @apply border-r border-border overflow-auto;
+  }
+
+  .fdms-split-pane-right {
+    @apply flex-1 overflow-auto;
+  }
+
+  .fdms-header {
+    @apply flex items-center justify-between h-12 px-4 border-b border-border bg-white;
+  }
+
+  .fdms-section-title {
+    @apply text-sm font-semibold text-foreground uppercase tracking-wider;
+  }
+
+  .fdms-data-grid {
+    @apply grid gap-4;
+  }
+
+  .fdms-data-label {
+    @apply text-xs text-muted-foreground uppercase tracking-wider;
+  }
+
+  .fdms-data-value {
+    @apply text-sm font-medium text-foreground;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .text-tabular {
+    font-family: 'IBM Plex Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .animate-pulse-subtle {
+    animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
+
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-terminal {
+    animation: terminal-cascade 0.5s ease-out forwards;
+  }
+
+  @keyframes terminal-cascade {
+    from {
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--fdms-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--fdms-border);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fdms-muted);
+}
+
+/* Selection styling */
+::selection {
+  background-color: var(--fdms-primary);
+  color: white;
+}
