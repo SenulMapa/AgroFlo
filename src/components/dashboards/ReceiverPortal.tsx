@@ -139,11 +139,11 @@ export function ReceiverPortal({ onLogout }: ReceiverPortalProps) {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">
-                      Destination
+                      Station
                     </span>
                     <span className="text-sm flex items-center gap-1 text-[#1e293b]">
                       <MapPin className="w-3 h-3" />
-                      {foundRequest.destination}
+                      {foundRequest.station.name}
                     </span>
                   </div>
                   <div>

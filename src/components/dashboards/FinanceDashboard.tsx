@@ -5,7 +5,8 @@ import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
 import {
   FileText, CheckCircle, DollarSign,
-  TrendingUp, Printer, XCircle, Loader2
+  TrendingUp, Printer, XCircle, Loader2,
+  BarChart3
 } from 'lucide-react';
 
 interface FinanceDashboardProps {
@@ -25,37 +26,40 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [declineReason, setDeclineReason] = useState('');
   const [reasonError, setReasonError] = useState<string | null>(null);
+  const [showReports, setShowReports] = useState(false);
 
   const pendingFinance = useMemo(() => {
     return requests.filter(r => r.status === 'pending_finance' || r.status === 'approved');
-  }, [requests]);
-
-  const clearedRequests = useMemo(() => {
-    return requests.filter(r => ['released', 'booking_stock', 'prepping', 'shipped'].includes(r.status));
   }, [requests]);
 
   const invoicedRequests = useMemo(() => {
     return requests.filter(r => r.status === 'invoiced');
   }, [requests]);
 
+  const completedInvoices = useMemo(() => {
+    return requests.filter(r => r.status === 'released' || r.status === 'paid' || r.status === 'booking_stock' || r.status === 'prepping' || r.status === 'driver_assigned' || r.status === 'order_picked_up' || r.status === 'delivered');
+  }, [requests]);
+
   const stats = useMemo(() => {
-    const totalValue = clearedRequests.reduce((sum, r) =>
-      sum + r.items.reduce((mSum, item) => mSum + item.total, 0), 0
+    const totalValue = completedInvoices.reduce((sum, r) =>
+      sum + r.items.reduce((mSum: number, item: { total: number }) => mSum + item.total, 0), 0
     );
+    const releasedToday = completedInvoices.filter(r => {
+      const today = new Date();
+      const released = r.releasedAt;
+      return released &&
+        released.getDate() === today.getDate() &&
+        released.getMonth() === today.getMonth() &&
+        released.getFullYear() === today.getFullYear();
+    }).length;
     return {
       pendingCount: pendingFinance.length,
-      clearedToday: clearedRequests.filter(r => {
-        const today = new Date();
-        const cleared = r.clearedAt;
-        return cleared &&
-          cleared.getDate() === today.getDate() &&
-          cleared.getMonth() === today.getMonth() &&
-          cleared.getFullYear() === today.getFullYear();
-      }).length,
+      invoicedCount: invoicedRequests.length,
+      releasedToday,
       totalValue,
       invoiceCount: invoices.length,
     };
-  }, [pendingFinance, clearedRequests, invoices]);
+  }, [pendingFinance, invoicedRequests, completedInvoices, invoices]);
 
   const handleSelectRequest = (requestId: string) => {
     dispatch({ type: 'SELECT_REQUEST', payload: requestId });
@@ -249,7 +253,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
   </div>
   
   <div class="footer">
-    <div><strong>Payment Status:</strong> PENDING</div>
+    <div><strong>Payment Status:</strong> ${invoice.status === 'paid' ? 'PAYMENT MADE' : invoice.status === 'released' ? 'RELEASED - PENDING PAYMENT' : 'PENDING'}</div>
   </div>
   
   <div class="signature">
@@ -306,8 +310,8 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
             <CheckCircle className="w-4 h-4 text-[#0d9488]" />
           </div>
           <div>
-            <div className="text-lg font-mono font-semibold text-[#1e293b]">{stats.clearedToday}</div>
-            <div className="text-xs text-[#64748b] uppercase">Cleared Today</div>
+            <div className="text-lg font-mono font-semibold text-[#1e293b]">{stats.releasedToday}</div>
+            <div className="text-xs text-[#64748b] uppercase">Released Today</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -328,6 +332,13 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
             <div className="text-xs text-[#64748b] uppercase">Invoices</div>
           </div>
         </div>
+        <button
+          onClick={() => setShowReports(!showReports)}
+          className="ml-auto inline-flex items-center gap-2 h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 transition-colors rounded"
+        >
+          <BarChart3 className="w-4 h-4" />
+          REPORTS
+        </button>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
@@ -369,7 +380,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
           </div>
 
           {/* Invoiced Queue */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col border-b border-[#e2e8f0]">
             <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9]">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">
                 Invoiced ({invoicedRequests.length})
@@ -395,6 +406,43 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                         </span>
                       </div>
                       <div className="text-xs text-[#64748b]">{request.station.name}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Completed Invoices Queue */}
+          <div className="flex-1 flex flex-col">
+            <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9]">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">
+                Completed ({completedInvoices.length})
+              </span>
+            </div>
+            <div className="flex-1 overflow-auto">
+              {completedInvoices.length === 0 ? (
+                <div className="p-4 text-center text-xs text-[#64748b]">No completed invoices</div>
+              ) : (
+                <div className="divide-y divide-[#e2e8f0]">
+                  {completedInvoices.slice(0, 20).map((request) => (
+                    <div
+                      key={request.id}
+                      onClick={() => handleSelectRequest(request.id)}
+                      className={`p-3 cursor-pointer hover:bg-[#f0fdf4] transition-colors ${
+                        selectedRequest?.id === request.id ? 'bg-[#f0fdf4] border-l-[3px] border-l-[#15803d]' : ''
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-mono text-xs font-semibold">{request.id}</span>
+                        <span className="font-mono text-xs text-[#15803d]">
+                          {request.invoiceId}
+                        </span>
+                      </div>
+                      <div className="text-xs text-[#64748b]">{request.station.name}</div>
+                      <div className="text-xs text-[#64748b]">
+                        {request.status === 'released' ? 'Released' : request.status === 'paid' ? 'Paid' : 'Processing'}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -461,6 +509,16 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                           RELEASE
                         </button>
                       </>
+                    )}
+                    {selectedRequest.status === 'released' && (
+                      <button
+                        onClick={() => dispatch({ type: 'MARK_INVOICE_PAID', payload: { requestId: selectedRequest.id, user: state.currentUser?.name || 'Finance' } })}
+                        disabled={isProcessing}
+                        className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+                      >
+                        <DollarSign className="w-4 h-4 mr-1" />
+                        PAYMENT MADE
+                      </button>
                     )}
                   </div>
                 </div>
@@ -681,6 +739,79 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                 className="px-4 py-2 text-sm bg-[#dc2626] text-white rounded hover:bg-red-700 disabled:opacity-50"
               >
                 {isProcessing ? 'Processing...' : 'Decline'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reports Modal */}
+      {showReports && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-2xl border border-[#e2e8f0] rounded p-6 max-h-[80vh] overflow-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#1e293b] flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Summary Reports
+              </h3>
+              <button
+                onClick={() => setShowReports(false)}
+                className="text-[#64748b] hover:text-[#1e293b] text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-green-50 border border-green-200 rounded p-4">
+                <div className="text-xs text-green-600 uppercase mb-1">Total Requests</div>
+                <div className="text-2xl font-bold text-[#1e293b]">{requests.length}</div>
+              </div>
+              <div className="bg-emerald-50 border border-emerald-200 rounded p-4">
+                <div className="text-xs text-emerald-600 uppercase mb-1">Total Value</div>
+                <div className="text-2xl font-bold text-[#15803d]">{formatCurrency(stats.totalValue)}</div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded p-4">
+                <div className="text-xs text-blue-600 uppercase mb-1">Pending Finance</div>
+                <div className="text-2xl font-bold text-[#1e293b]">{pendingFinance.length}</div>
+              </div>
+              <div className="bg-cyan-50 border border-cyan-200 rounded p-4">
+                <div className="text-xs text-cyan-600 uppercase mb-1">Invoiced</div>
+                <div className="text-2xl font-bold text-[#1e293b]">{invoicedRequests.length}</div>
+              </div>
+              <div className="bg-teal-50 border border-teal-200 rounded p-4">
+                <div className="text-xs text-teal-600 uppercase mb-1">Released</div>
+                <div className="text-2xl font-bold text-[#1e293b]">{completedInvoices.length}</div>
+              </div>
+              <div className="bg-purple-50 border border-purple-200 rounded p-4">
+                <div className="text-xs text-purple-600 uppercase mb-1">Total Invoices</div>
+                <div className="text-2xl font-bold text-[#1e293b]">{invoices.length}</div>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-[#1e293b] mb-2">Requests by Status</h4>
+              <div className="grid grid-cols-3 gap-2">
+                {Object.entries(
+                  requests.reduce((acc: Record<string, number>, r) => {
+                    acc[r.status] = (acc[r.status] || 0) + 1;
+                    return acc;
+                  }, {})
+                ).map(([status, count]) => (
+                  <div key={status} className="flex justify-between p-2 bg-[#f1f5f9] rounded text-xs">
+                    <span className="capitalize">{status.replace('_', ' ')}</span>
+                    <span className="font-mono font-semibold">{count}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowReports(false)}
+                className="px-4 py-2 text-sm bg-[#15803d] text-white rounded hover:bg-green-800"
+              >
+                Close
               </button>
             </div>
           </div>

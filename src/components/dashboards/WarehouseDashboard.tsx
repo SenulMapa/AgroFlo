@@ -277,7 +277,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
         {/* Tab Switcher */}
         <div className="ml-auto flex items-center gap-2">
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => { setActiveTab('orders'); setShowIMS(false); }}
             className={`inline-flex items-center gap-2 h-8 px-4 text-xs font-medium border transition-colors rounded ${
               activeTab === 'orders' && !showIMS
                 ? 'bg-[#15803d] text-white border-[#15803d] hover:bg-green-800'
@@ -288,9 +288,9 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
             ORDERS
           </button>
           <button
-            onClick={() => setActiveTab('drivers')}
+            onClick={() => { setActiveTab('drivers'); setShowIMS(false); }}
             className={`inline-flex items-center gap-2 h-8 px-4 text-xs font-medium border transition-colors rounded ${
-              activeTab === 'drivers'
+              activeTab === 'drivers' && !showIMS
                 ? 'bg-[#15803d] text-white border-[#15803d] hover:bg-green-800'
                 : 'bg-white text-[#1e293b] border-[#e2e8f0] hover:bg-gray-50'
             }`}
@@ -588,14 +588,35 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                     <div className="flex items-center gap-3">
                       <h2 className="text-lg font-mono font-semibold text-[#1e293b]">{selectedRequest.id}</h2>
                       <StatusBadge status={selectedRequest.status} />
-                      {selectedRequest.invoiceId && (
-                        <span className="text-xs font-mono text-[#64748b]">
-                          INV: {selectedRequest.invoiceId}
-                        </span>
-                      )}
                     </div>
                     {getActionButton()}
                   </div>
+
+                  {/* Invoice Info Card */}
+                  {selectedRequest.invoiceId && (
+                    <div className="bg-white border border-[#e2e8f0] rounded border-l-4 border-l-[#0d9488]">
+                      <div className="px-3 py-2 border-b border-[#e2e8f0] bg-emerald-50 flex items-center justify-between rounded-t">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                          Invoice Information
+                        </span>
+                        <span className="font-mono text-sm font-semibold text-emerald-700">
+                          {selectedRequest.invoiceId}
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Invoice ID</span>
+                            <span className="text-sm font-mono font-medium text-[#1e293b]">{selectedRequest.invoiceId}</span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Payment Status</span>
+                            <span className="text-sm font-medium text-[#15803d]">Received from Finance</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Assigned Driver Card */}
                   {selectedRequest.assignedDriver && (

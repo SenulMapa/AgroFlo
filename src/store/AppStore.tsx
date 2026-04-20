@@ -89,6 +89,7 @@ type AppAction =
   | { type: 'GENERATE_INVOICE'; payload: { requestId: string; user: string } }
   | { type: 'RELEASE_INVOICE'; payload: { requestId: string; user: string } }
   | { type: 'DECLINE_INVOICE'; payload: { requestId: string; reason: string; user: string } }
+  | { type: 'MARK_INVOICE_PAID'; payload: { requestId: string; user: string } }
   | { type: 'CLEAR_FOR_WAREHOUSE'; payload: { requestId: string; user: string } }
   | { type: 'BOOK_STOCK'; payload: { requestId: string; user: string } }
   | { type: 'START_PREPPING'; payload: { requestId: string; user: string } }
@@ -371,6 +372,36 @@ function appReducer(state: AppState, action: AppAction): AppState {
               auditLog: [
                 ...r.auditLog,
                 createAuditLog(user, 'finance', 'INVOICE_DECLINED', `Invoice declined: ${reason}`),
+              ],
+            };
+          }
+          return r;
+        }),
+      };
+    }
+
+    case 'MARK_INVOICE_PAID': {
+      const { requestId, user } = action.payload;
+      return {
+        ...state,
+        invoices: state.invoices.map(inv => {
+          if (inv.requestId === requestId) {
+            return {
+              ...inv,
+              status: 'paid',
+              paidAt: new Date(),
+            };
+          }
+          return inv;
+        }),
+        requests: state.requests.map(r => {
+          if (r.id === requestId) {
+            return {
+              ...r,
+              status: 'paid',
+              auditLog: [
+                ...r.auditLog,
+                createAuditLog(user, 'finance', 'PAYMENT_CONFIRMED', 'Payment confirmed'),
               ],
             };
           }

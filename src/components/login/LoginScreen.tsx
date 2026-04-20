@@ -56,27 +56,33 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-teal-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-teal-800 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-green-300 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+      </div>
+      <div className="w-full max-w-md relative z-10">
         {/* Logo & Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#15803d] rounded-xl mb-4 shadow-lg">
-            <Sprout className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-2xl mb-4 shadow-lg border border-white/30">
+            <Sprout className="w-10 h-10 text-white" />
           </div>
-          <h1 className="font-mono text-2xl font-bold text-[#1e293b] tracking-wider">
+          <h1 className="font-mono text-3xl font-bold text-white tracking-wider drop-shadow-md">
             AgriFlo
           </h1>
-          <p className="text-[#64748b] mt-1 text-sm font-medium">
-            Agricultural Fertilizer Logistics
+          <p className="text-green-100 mt-2 text-sm font-medium">
+            Fertilizer Distribution Management System
           </p>
-          <p className="text-[#64748b] text-xs mt-1">
+          <p className="text-green-200/70 text-xs mt-1">
             State Fertilizer Corporation
           </p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white border border-[#e2e8f0] rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-[#e2e8f0] bg-green-50 rounded-t-lg">
+        <div className="bg-white/95 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl">
+          <div className="px-6 py-4 border-b border-[#e2e8f0]/50 bg-green-50/80 rounded-t-lg">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-[#1e293b]">
               Staff Authentication
             </h2>
