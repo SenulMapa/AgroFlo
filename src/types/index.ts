@@ -1,6 +1,6 @@
 // AgriFlo - Agricultural Fertilizer Logistics System
 
-export type UserRole = 'admin_staff' | 'admin_manager' | 'finance' | 'warehouse' | 'receiver' | null;
+export type UserRole = 'admin_staff' | 'admin_manager' | 'finance' | 'warehouse' | 'receiver' | 'inventory_manager' | null;
 
 export const SLA_HOURS = 72;
 

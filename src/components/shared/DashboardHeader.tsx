@@ -12,6 +12,7 @@ const roleLabels: Record<NonNullable<UserRole>, string> = {
   admin_manager: 'ADMIN MANAGER',
   finance: 'FINANCE',
   warehouse: 'WAREHOUSE',
+  inventory_manager: 'INVENTORY MANAGER',
   receiver: 'RECEIVER',
 };
 
