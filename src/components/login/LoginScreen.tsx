@@ -72,10 +72,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <h1 className="font-mono text-3xl font-bold text-white tracking-wider drop-shadow-md">
             AgriFlo
           </h1>
-          <p className="text-green-100 mt-2 text-sm font-medium">
+          <p className="text-green-50 mt-2 text-sm font-medium">
             Fertilizer Distribution Management System
           </p>
-          <p className="text-green-200/70 text-xs mt-1">
+          <p className="text-green-100/90 text-xs mt-1">
             State Fertilizer Corporation
           </p>
         </div>
@@ -83,7 +83,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         {/* Login Form */}
         <div className="bg-white/95 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl">
           <div className="px-6 py-4 border-b border-[#e2e8f0]/50 bg-green-50/80 rounded-t-lg">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#1e293b]">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#0f172a]">
               Staff Authentication
             </h2>
           </div>
@@ -97,11 +97,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             )}
 
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-[#64748b]">
+              <label className="text-xs font-medium uppercase tracking-wider text-[#374151]">
                 Employee ID
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748b]" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#374151]" />
                 <input
                   type="text"
                   value={employeeId}
@@ -114,11 +114,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-[#64748b]">
+              <label className="text-xs font-medium uppercase tracking-wider text-[#374151]">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#64748b]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#374151]" />
                 <input
                   type="password"
                   value={password}
@@ -149,7 +149,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Quick Login Buttons */}
         <div className="mt-6">
-          <p className="text-center text-xs text-[#64748b] mb-3">Quick Login (Demo)</p>
+          <p className="text-center text-xs text-[#374151] mb-3">Quick Login (Demo)</p>
           <div className="grid grid-cols-5 gap-2">
             {([
               { role: 'admin_staff', label: 'Staff' },
@@ -161,7 +161,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <button
                 key={role}
                 onClick={() => quickLogin(role)}
-                className="px-2 py-2 bg-white border border-[#e2e8f0] text-xs text-[#64748b] hover:border-[#15803d] hover:text-[#15803d] transition-colors rounded"
+                className="px-2 py-2 bg-white border border-[#e2e8f0] text-xs text-[#374151] hover:border-[#15803d] hover:text-[#15803d] transition-colors rounded"
                 title={role?.replace('_', ' ')}
               >
                 {label}
@@ -172,10 +172,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-[#64748b]">
+          <p className="text-xs text-[#374151]">
             Authorized personnel only. All access is logged and monitored.
           </p>
-          <p className="text-xs text-[#64748b] mt-1">
+          <p className="text-xs text-[#374151] mt-1">
             v1.0.0 | MVP Build 2026.04.12
           </p>
         </div>
