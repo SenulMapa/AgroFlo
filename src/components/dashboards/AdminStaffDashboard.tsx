@@ -78,6 +78,11 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
 
   const handleCreateRequest = async () => {
     if (!selectedStation || !fertilizerType) return;
+    
+    if (quantity <= 0 || quantity > 10000) {
+      alert('Please enter a valid quantity between 1 and 10,000');
+      return;
+    }
 
     setIsCreating(true);
     

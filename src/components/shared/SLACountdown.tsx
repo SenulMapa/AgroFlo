@@ -39,7 +39,7 @@ export function SLACountdown({ deadline, className = '' }: SLACountdownProps) {
     };
 
     updateTimeLeft();
-    const interval = setInterval(updateTimeLeft, 60000);
+    const interval = setInterval(updateTimeLeft, 1000);
 
     return () => clearInterval(interval);
   }, [deadline]);
@@ -54,7 +54,7 @@ export function SLACountdown({ deadline, className = '' }: SLACountdownProps) {
   }
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium ${isUrgent ? 'text-red-600' : 'text-fdms-muted'} ${className}`}>
+    <span className={`inline-flex items-center gap-1 text-xs font-medium ${isUrgent ? 'text-red-600' : 'text-[#64748b]'} ${className}`}>
       <Clock className={`w-3 h-3 ${isUrgent ? 'animate-pulse' : ''}`} />
       {timeLeft}
     </span>

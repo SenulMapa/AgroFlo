@@ -29,7 +29,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const [activeTab, setActiveTab] = useState<'orders' | 'drivers'>('orders');
 
   const clearedRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'released');
+    return requests.filter(r => r.status === 'cleared' || r.status === 'released');
   }, [requests]);
 
   const bookingStockRequests = useMemo(() => {
@@ -194,7 +194,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
             )}
           </button>
         );
-      case 'prepping':
+      case 'prepping': {
         const hasDriver = !!selectedRequest.assignedDriver;
         return (
           <div className="flex items-center gap-2">
@@ -227,6 +227,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
             )}
           </div>
         );
+      }
       default:
         return null;
     }
@@ -352,7 +353,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                 </thead>
                 <tbody>
                   {stock.map((item, idx) => {
-                    const stockLevel = item.available / item.total;
+                    const stockLevel = item.total > 0 ? item.available / item.total : 0;
                     const statusColor = stockLevel > 0.3 ? 'bg-green-100 text-green-800' : stockLevel > 0.1 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800';
                     const statusText = stockLevel > 0.3 ? 'In Stock' : stockLevel > 0.1 ? 'Low Stock' : 'Critical';
                     return (

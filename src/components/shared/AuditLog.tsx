@@ -43,34 +43,34 @@ export function AuditLog({ entries, className = '' }: AuditLogProps) {
   };
 
   return (
-    <div className={`bg-white border border-fdms-border ${className}`}>
-      <div className="px-3 py-2 border-b border-fdms-border bg-fdms-zebra flex items-center gap-2">
-        <History className="w-3 h-3 text-fdms-muted" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-fdms-muted">Audit Log</span>
+    <div className={`bg-white border border-[#e2e8f0] ${className}`}>
+      <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center gap-2">
+        <History className="w-3 h-3 text-[#64748b]" />
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">Audit Log</span>
       </div>
       
       <div className="max-h-48 overflow-y-auto">
         {entries.length === 0 ? (
-          <div className="p-4 text-center text-xs text-fdms-muted">
+          <div className="p-4 text-center text-xs text-[#64748b]">
             No audit entries
           </div>
         ) : (
-          <div className="divide-y divide-fdms-border">
+          <div className="divide-y divide-[#e2e8f0]">
             {[...entries].reverse().map((entry) => (
-              <div key={entry.id} className="p-3 hover:bg-fdms-zebra transition-colors">
+              <div key={entry.id} className="p-3 hover:bg-[#f1f5f9] transition-colors">
                 <div className="flex items-start gap-3">
                   <div className={`flex-shrink-0 w-6 h-6 flex items-center justify-center ${actionColors[entry.action] || 'bg-gray-100 text-gray-600'}`}>
                     {actionIcons[entry.action] || <History className="w-3 h-3" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-medium text-fdms-text">{entry.action}</span>
-                      <span className="text-xs text-fdms-muted">{formatTime(entry.timestamp)}</span>
+                      <span className="text-xs font-medium text-[#1e293b]">{entry.action}</span>
+                      <span className="text-xs text-[#64748b]">{formatTime(entry.timestamp)}</span>
                     </div>
-                    <p className="text-xs text-fdms-muted mt-0.5">{entry.details}</p>
+                    <p className="text-xs text-[#64748b] mt-0.5">{entry.details}</p>
                     <div className="flex items-center gap-1 mt-1">
-                      <User className="w-2.5 h-2.5 text-fdms-muted" />
-                      <span className="text-xs text-fdms-muted">{entry.user}</span>
+                      <User className="w-2.5 h-2.5 text-[#64748b]" />
+                      <span className="text-xs text-[#64748b]">{entry.user}</span>
                     </div>
                   </div>
                 </div>

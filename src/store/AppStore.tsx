@@ -187,7 +187,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'CREATE_NEW_REQUEST': {
       const { station, items, priority, destination = '', orderCreatedDate, user } = action.payload;
-      const nextId = 8900 + state.requests.length;
+      const existingIds = state.requests.map(r => {
+        const match = r.id.match(/REQ-(\d+)/);
+        return match ? parseInt(match[1], 10) : 0;
+      });
+      const nextId = Math.max(...existingIds, 8899) + 1;
       const slaDeadline = new Date();
       slaDeadline.setHours(slaDeadline.getHours() + 72);
 
@@ -422,7 +426,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           if (r.id === requestId) {
             return {
               ...r,
-              status: 'released',
+              status: 'cleared',
               clearedAt: new Date(),
               auditLog: [
                 ...r.auditLog,
@@ -440,23 +444,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
-      // Update stock: move from available to booked
-      const updatedStock = state.stock.map(stockItem => {
-        const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
-        if (requestItem) {
-          const qtyMT = requestItem.quantity / 20; // Convert bags to metric tons (approx)
-          return {
-            ...stockItem,
-            available: Math.max(0, stockItem.available - qtyMT),
-            booked: stockItem.booked + qtyMT,
-          };
-        }
-        return stockItem;
-      });
-
       return {
         ...state,
-        stock: updatedStock,
         requests: state.requests.map(r => {
           if (r.id === requestId) {
             return {
@@ -517,8 +506,22 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
+      const updatedStock = state.stock.map(stockItem => {
+        const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
+        if (requestItem) {
+          const qtyMT = requestItem.quantity / 20;
+          return {
+            ...stockItem,
+            prepping: Math.max(0, stockItem.prepping - qtyMT),
+            total: Math.max(0, stockItem.total - qtyMT),
+          };
+        }
+        return stockItem;
+      });
+
       return {
         ...state,
+        stock: updatedStock,
         requests: state.requests.map(r => {
           if (r.id === requestId) {
             return {

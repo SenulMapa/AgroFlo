@@ -14,6 +14,7 @@ export type RequestStatus =
   | 'invoice_declined'     // Invoice declined by finance
   | 'paid'                // Payment confirmed (manual process)
   | 'released'             // Finance released to warehouse
+  | 'cleared'              // Cleared for warehouse processing
   | 'booking_stock'        // Warehouse booking stock
   | 'prepping'             // Stock being prepared/loaded
   | 'driver_assigned'      // Driver assigned to route
@@ -127,7 +128,7 @@ export interface Invoice {
 }
 
 export function isRequestOverdue(request: TransportRequest): boolean {
-  const finalStatuses = ['shipped', 'declined', 'completed'];
+  const finalStatuses = ['delivered'];
   if (finalStatuses.includes(request.status)) return false;
   
   const createdDate = new Date(request.date);

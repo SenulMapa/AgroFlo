@@ -66,6 +66,7 @@
     font-family: 'IBM Plex Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
   }
 
   code, pre, .font-mono {
@@ -263,16 +264,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--fdms-background);
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--fdms-border);
+  background: #e2e8f0;
   border-radius: 0;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--fdms-muted);
+  background: #64748b;
 }
 
 /* Selection styling */

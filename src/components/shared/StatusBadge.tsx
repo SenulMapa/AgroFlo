@@ -15,6 +15,7 @@ const statusConfig: Record<RequestStatus, { label: string; className: string }> 
   invoice_declined: { label: 'INV DECLINED', className: 'bg-red-100 text-red-800 border-red-200' },
   paid: { label: 'PAID', className: 'bg-green-100 text-green-800 border-green-200' },
   released: { label: 'RELEASED', className: 'bg-green-100 text-green-800 border-green-200' },
+  cleared: { label: 'CLEARED', className: 'bg-blue-100 text-blue-800 border-blue-200' },
   booking_stock: { label: 'BOOKING STOCK', className: 'bg-orange-100 text-orange-800 border-orange-200' },
   prepping: { label: 'PREPPING', className: 'bg-indigo-100 text-indigo-800 border-indigo-200' },
   driver_assigned: { label: 'DRIVER ASSIGNED', className: 'bg-teal-100 text-teal-800 border-teal-200' },
