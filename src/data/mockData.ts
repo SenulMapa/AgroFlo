@@ -5,7 +5,8 @@ export const mockUsers: User[] = [
   { id: '2', employeeId: 'MGR001', name: 'Nimal Fernando', role: 'admin_manager' },
   { id: '3', employeeId: 'FIN001', name: 'Dilani Silva', role: 'finance' },
   { id: '4', employeeId: 'WAR001', name: 'Ruwan Kumara', role: 'warehouse' },
-  { id: '5', employeeId: 'RCV001', name: 'Gamage Dissanayake', role: 'receiver' },
+  { id: '5', employeeId: 'INV001', name: 'Kamal Jayaweera', role: 'inventory_manager' },
+  { id: '6', employeeId: 'RCV001', name: 'Gamage Dissanayake', role: 'receiver' },
 ];
 
 export const mockDrivers: DriverInfo[] = [
@@ -191,5 +192,6 @@ export const credentials: Record<string, { employeeId: string; password: string 
   admin_manager: { employeeId: 'MGR001', password: 'fdms123' },
   finance: { employeeId: 'FIN001', password: 'fdms123' },
   warehouse: { employeeId: 'WAR001', password: 'fdms123' },
+  inventory_manager: { employeeId: 'INV001', password: 'fdms123' },
   receiver: { employeeId: 'RCV001', password: 'fdms123' },
 };

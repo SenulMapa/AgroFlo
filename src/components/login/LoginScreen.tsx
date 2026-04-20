@@ -154,12 +154,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         {/* Quick Login Buttons */}
         <div className="mt-6">
           <p className="text-center text-xs text-black/80 mb-3">Quick Login (Demo)</p>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-6 gap-2">
             {([
               { role: 'admin_staff', label: 'Staff' },
               { role: 'admin_manager', label: 'Admin' },
               { role: 'finance', label: 'Finance' },
               { role: 'warehouse', label: 'Warehouse' },
+              { role: 'inventory_manager', label: 'Inventory' },
               { role: 'receiver', label: 'Receiver' },
             ] as { role: UserRole; label: string }[]).map(({ role, label }) => (
               <button
