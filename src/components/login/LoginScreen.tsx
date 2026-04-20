@@ -87,30 +87,30 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         {/* Login Form */}
         <div className="bg-white/95 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl">
           <div className="px-6 py-4 border-b border-[#e2e8f0]/50 bg-white/20 rounded-t-lg">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-black">
               Staff Authentication
             </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50/20 border border-red-200/30 text-red-100 text-xs rounded">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-100" />
+              <div className="flex items-center gap-2 p-3 bg-red-100 border border-red-300 text-red-800 text-xs rounded">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-600" />
                 <span>{error}</span>
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-white">
+              <label className="text-xs font-medium uppercase tracking-wider text-black">
                 Employee ID
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/80" />
                 <input
                   type="text"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
-                  className="w-full h-10 pl-10 pr-3 border border-white/30 text-white rounded focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-colors bg-white/10"
+                  className="w-full h-10 pl-10 pr-3 border border-white/30 text-black rounded focus:outline-none focus:border-[#15803d] focus:ring-1 focus:ring-[#15803d] transition-colors bg-white/20"
                   placeholder="Enter employee ID"
                   disabled={isLoading}
                 />
@@ -118,16 +118,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-white">
+              <label className="text-xs font-medium uppercase tracking-wider text-black">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/80" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-10 pl-10 pr-3 border border-white/30 text-white rounded focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-colors bg-white/10"
+                  className="w-full h-10 pl-10 pr-3 border border-white/30 text-black rounded focus:outline-none focus:border-[#15803d] focus:ring-1 focus:ring-[#15803d] transition-colors bg-white/20"
                   placeholder="Enter password"
                   disabled={isLoading}
                 />
@@ -137,7 +137,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <button
               type="submit"
               disabled={isLoading || !employeeId || !password}
-              className="w-full h-10 bg-white/20 text-white font-medium text-sm hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 rounded backdrop-blur-sm border border-white/20"
+              className="w-full h-10 bg-[#15803d] text-black font-medium text-sm hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 rounded"
             >
               {isLoading ? (
                 <>
@@ -153,7 +153,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Quick Login Buttons */}
         <div className="mt-6">
-          <p className="text-center text-xs text-white/80 mb-3">Quick Login (Demo)</p>
+          <p className="text-center text-xs text-black/80 mb-3">Quick Login (Demo)</p>
           <div className="grid grid-cols-5 gap-2">
             {([
               { role: 'admin_staff', label: 'Staff' },
@@ -165,7 +165,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <button
                 key={role}
                 onClick={() => quickLogin(role)}
-                className="px-2 py-2 bg-white/20 border border-white/30 text-xs text-white/80 hover:bg-white/30 hover:text-white transition-colors rounded backdrop-blur-sm"
+                className="px-2 py-2 bg-white/30 border border-white/40 text-xs text-black hover:bg-white/40 transition-colors rounded backdrop-blur-sm"
                 title={role?.replace('_', ' ')}
               >
                 {label}
@@ -176,10 +176,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-white/80">
+          <p className="text-xs text-black/80">
             Authorized personnel only. All access is logged and monitored.
           </p>
-          <p className="text-xs text-white/80 mt-1">
+          <p className="text-xs text-black/80 mt-1">
             v1.0.0 | MVP Build 2026.04.12
           </p>
         </div>
