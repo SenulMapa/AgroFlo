@@ -392,19 +392,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                 </table>
               </div>
 
-              {/* Destination */}
-              <div className="bg-white border border-[#e2e8f0] rounded p-4">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#15803d]" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">Delivery Destination:</span>
-                  <span className="text-sm text-[#1e293b]">{selectedRequest.destination}</span>
-                </div>
-                {selectedRequest.route && (
-                  <div className="mt-2 text-xs text-[#64748b]">
-                    Route: {selectedRequest.route.from} → {selectedRequest.route.to} ({selectedRequest.route.distance} km)
-                  </div>
-                )}
-              </div>
+              
 
               {/* Audit Log */}
               <AuditLog entries={selectedRequest.auditLog} />

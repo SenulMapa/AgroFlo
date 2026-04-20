@@ -154,7 +154,7 @@ const [showDeclineModal, setShowDeclineModal] = useState(false);
                         <PriorityBadge priority={request.priority} showIcon={false} />
                       </div>
                       <div className="text-xs text-[#64748b] mb-1">{request.station.name}</div>
-                      <div className="text-xs text-[#64748b] mb-1">{request.station.district} → {request.destination}</div>
+                      <div className="text-xs text-[#64748b] mb-1">{request.station.district}</div>
                       <div className={`flex items-center gap-1 px-2 py-1 text-xs rounded ${getSLAColor(request.slaDeadline)}`}>
                         <Clock className="w-3 h-3" />
                         <SLACountdown deadline={request.slaDeadline} />
@@ -326,24 +326,13 @@ const [showDeclineModal, setShowDeclineModal] = useState(false);
               </div>
 
               {/* Station & Route Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white border border-[#e2e8f0] rounded p-4">
+              <div className="bg-white border border-[#e2e8f0] rounded p-4">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b] block mb-2">
                     Station
                   </span>
                   <div className="text-sm text-[#1e293b]">{selectedRequest.station.name}</div>
                   <div className="text-xs text-[#64748b]">{selectedRequest.station.district}</div>
                 </div>
-                <div className="bg-white border border-[#e2e8f0] rounded p-4">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b] block mb-2">
-                    Destination
-                  </span>
-                  <div className="text-sm text-[#1e293b]">{selectedRequest.destination}</div>
-                  {selectedRequest.route && (
-                    <div className="text-xs text-[#64748b] mt-1">{selectedRequest.route.distance} km</div>
-                  )}
-                </div>
-              </div>
 
               {/* Audit Log */}
               <AuditLog entries={selectedRequest.auditLog} />

@@ -5,9 +5,10 @@ import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
 import type { DriverInfo } from '@/types';
 import {
-  Package, CheckCircle, Truck, MapPin, User, Phone,
+  Package, CheckCircle, Truck, User, Phone,
   Star, Loader2, AlertCircle, Box,
-  ClipboardCheck, Search, Warehouse, ArrowRightLeft
+  ClipboardCheck, Search, Warehouse, ArrowRightLeft,
+  Link, MapPinOff
 } from 'lucide-react';
 
 interface WarehouseDashboardProps {
@@ -497,7 +498,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                             <span className="font-mono text-xs font-semibold">{request.id}</span>
                           </div>
                           <div className="text-xs text-[#64748b]">{request.station.name}</div>
-                          <div className="text-xs text-[#64748b]">{request.station.district} → {request.destination}</div>
+                          <div className="text-xs text-[#64748b]">{request.station.district}</div>
                         </div>
                       ))}
                     </div>
@@ -597,11 +598,12 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                     <div className="bg-white border border-[#e2e8f0] rounded border-l-4 border-l-[#0d9488]">
                       <div className="px-3 py-2 border-b border-[#e2e8f0] bg-emerald-50 flex items-center justify-between rounded-t">
                         <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-                          Invoice Information
+                          Invoice Attached
                         </span>
-                        <span className="font-mono text-sm font-semibold text-emerald-700">
+                        <a href="#" onClick={(e) => { e.preventDefault(); alert(`View Invoice: ${selectedRequest.invoiceId}`); }} className="font-mono text-sm font-semibold text-emerald-700 hover:underline cursor-pointer flex items-center gap-1">
+                          <Link className="w-3 h-3" />
                           {selectedRequest.invoiceId}
-                        </span>
+                        </a>
                       </div>
                       <div className="p-4">
                         <div className="flex items-center justify-between">
@@ -656,8 +658,48 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                         </div>
                       </div>
                     </div>
-                  )}
+)}
 
+                  {/* Live Tracking */}
+                  {(selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'driver_assigned') && selectedRequest.assignedDriver && (
+                    <div className="bg-white border border-[#e2e8f0] rounded border-l-4 border-l-[#0d9488]">
+                      <div className="px-3 py-2 border-b border-[#e2e8f0] bg-teal-50 flex items-center justify-between rounded-t">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-teal-700 flex items-center gap-2">
+                          <MapPinOff className="w-3 h-3" />
+                          Live Tracking
+                        </span>
+                        <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-xs font-medium rounded">
+                          {selectedRequest.status === 'order_picked_up' ? 'IN TRANSIT' : 'ASSIGNED'}
+                        </span>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-teal-100 flex items-center justify-center rounded-full animate-pulse">
+                              <Truck className="w-5 h-5 text-teal-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-[#1e293b]">{selectedRequest.assignedDriver.name}</div>
+                              <div className="text-xs text-teal-600">Driver en route</div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-[#64748b]">ETA</div>
+                            <div className="text-sm font-mono font-semibold text-[#1e293b]">
+                              {selectedRequest.route ? `${Math.ceil(selectedRequest.route.distance / 60)} hours` : '--'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-gray-100 rounded p-2 text-xs text-[#64748b]">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></span>
+                            Tracking active - Real-time GPS updates
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                    
                   {/* Fertilizer Items */}
                   <div className="bg-white border border-[#e2e8f0] rounded">
                     <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center justify-between rounded-t">
@@ -690,34 +732,6 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                         ))}
                       </tbody>
                     </table>
-                  </div>
-
-                  {/* Delivery Info */}
-                  <div className="bg-white border border-[#e2e8f0] rounded p-4">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b] block mb-3">
-                      Delivery Information
-                    </span>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Destination</span>
-                        <span className="text-sm flex items-center gap-1 text-[#1e293b]">
-                          <MapPin className="w-3 h-3" />
-                          {selectedRequest.destination}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Station</span>
-                        <span className="text-sm text-[#1e293b]">{selectedRequest.station.name}</span>
-                      </div>
-                      {selectedRequest.route && (
-                        <div className="col-span-2">
-                          <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Route</span>
-                          <span className="text-sm text-[#1e293b]">
-                            {selectedRequest.route.from} → {selectedRequest.route.to} ({selectedRequest.route.distance} km)
-                          </span>
-                        </div>
-                      )}
-                    </div>
                   </div>
 
                   <AuditLog entries={selectedRequest.auditLog} />

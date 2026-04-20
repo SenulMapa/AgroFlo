@@ -6,7 +6,7 @@ import { AuditLog } from '../shared/AuditLog';
 import {
   FileText, CheckCircle, DollarSign,
   TrendingUp, Printer, XCircle, Loader2,
-  BarChart3
+  BarChart3, Share2
 } from 'lucide-react';
 
 interface FinanceDashboardProps {
@@ -371,7 +371,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                         </span>
                       </div>
                       <div className="text-xs text-[#64748b]">{request.station.name}</div>
-                      <div className="text-xs text-[#64748b]">{request.station.district} → {request.destination}</div>
+                      <div className="text-xs text-[#64748b]">{request.station.district}</div>
                     </div>
                   ))}
                 </div>
@@ -620,13 +620,24 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                 </span>
               </div>
               {selectedRequest?.invoiceId && (
-                <button 
-                  onClick={handlePrintInvoice}
-                  className="flex items-center gap-1 text-xs text-[#15803d] hover:underline cursor-pointer"
-                >
-                  <Printer className="w-3 h-3" />
-                  PRINT
-                </button>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={handlePrintInvoice}
+                    className="flex items-center gap-1 text-xs text-[#15803d] hover:underline cursor-pointer"
+                  >
+                    <Printer className="w-3 h-3" />
+                    PRINT
+                  </button>
+                  {selectedRequest.status === 'released' && (
+                    <button 
+                      onClick={() => alert(`Invoice ${selectedRequest.invoiceId} shared with Warehouse!`)}
+                      className="flex items-center gap-1 text-xs text-[#0d9488] hover:underline cursor-pointer"
+                    >
+                      <Share2 className="w-3 h-3" />
+                      SHARE TO WAREHOUSE
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex-1 overflow-auto p-4 bg-gray-900 font-mono text-xs">
