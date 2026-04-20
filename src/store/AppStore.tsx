@@ -1,6 +1,5 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { TransportRequest, User, UserRole, Invoice, DriverInfo, DriverBid, StockItem, FertilizerItem, StationInfo, Priority } from '@/types';
-import { generateMockRequests, mockDrivers, mockStock } from '@/data/mockData';
 import { getRequests } from '@/lib/db/requests';
 import { getDrivers } from '@/lib/db/drivers';
 import { getStock } from '@/lib/db/stock';
@@ -10,15 +9,20 @@ const STORAGE_KEY = 'agriflo_state';
 
 async function loadFromDB(): Promise<Partial<AppState>> {
   try {
+    console.log('Loading data from Supabase...');
     const [requests, drivers, stock, invoices] = await Promise.all([
       getRequests(),
       getDrivers(true),
       getStock(),
       getInvoices(),
     ]);
+    console.log('Supabase data loaded:', { requests: requests.length, drivers: drivers.length, stock: stock.length, invoices: invoices.length });
+    if (requests.length === 0 && drivers.length === 0 && stock.length === 0) {
+      console.warn('No data from Supabase - all tables empty!');
+    }
     return { requests, drivers, stock, invoices } as Partial<AppState>;
   } catch (e) {
-    console.warn('Failed to load from DB:', e);
+    console.error('Failed to load from Supabase DB:', e);
     return {};
   }
 }
@@ -107,10 +111,10 @@ const initialState: AppState = (() => {
   }
   return {
     currentUser: null,
-    requests: generateMockRequests(),
+    requests: [],
     invoices: [],
-    drivers: mockDrivers,
-    stock: mockStock,
+    drivers: [],
+    stock: [],
     selectedRequestId: null,
     isLoading: false,
     error: null,
