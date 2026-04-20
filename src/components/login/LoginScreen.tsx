@@ -56,12 +56,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-teal-800 flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-green-300 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0">
+        <img
+          src="https://lh3.googleusercontent.com/sitesv/AA5AbUDoVb4JT9HaAeOCZDT1u5Q2h8KBs_xvDgs3zVPXj27bp_kZldUepX1IwU30DDpl6tlsJxrgXeXD2-aHR0FKm3vYFlVcc1vuOqyI_G2tYkIn7LSck2orlccxUNBd0ujcJZweIYqxoZidHrdBKM8ZPLlNNVfSEQszbEJ1f5Eli_rxcrzPevvzh-IX=w16383"
+          alt="Login Background"
+          className="w-full h-full object-cover"
+        />
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-600/70 via-green-700/60 to-teal-800/50"></div>
       </div>
       <div className="w-full max-w-md relative z-10">
         {/* Logo & Header */}
@@ -72,41 +76,41 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <h1 className="font-mono text-3xl font-bold text-white tracking-wider drop-shadow-md">
             AgriFlo
           </h1>
-          <p className="text-green-50 mt-2 text-sm font-medium">
+          <p className="text-white mt-2 text-sm font-medium">
             Fertilizer Distribution Management System
           </p>
-          <p className="text-green-100/90 text-xs mt-1">
+          <p className="text-white/90 text-xs mt-1">
             State Fertilizer Corporation
           </p>
         </div>
 
         {/* Login Form */}
         <div className="bg-white/95 backdrop-blur-sm border border-white/30 rounded-lg shadow-xl">
-          <div className="px-6 py-4 border-b border-[#e2e8f0]/50 bg-green-50/80 rounded-t-lg">
-            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#0f172a]">
+          <div className="px-6 py-4 border-b border-[#e2e8f0]/50 bg-white/20 rounded-t-lg">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-white">
               Staff Authentication
             </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 p-3 bg-red-50/20 border border-red-200/30 text-red-100 text-xs rounded">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-100" />
                 <span>{error}</span>
               </div>
             )}
 
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-[#374151]">
+              <label className="text-xs font-medium uppercase tracking-wider text-white">
                 Employee ID
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#374151]" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
                 <input
                   type="text"
                   value={employeeId}
                   onChange={(e) => setEmployeeId(e.target.value)}
-                  className="w-full h-10 pl-10 pr-3 border border-[#e2e8f0] text-sm rounded focus:outline-none focus:border-[#15803d] focus:ring-1 focus:ring-[#15803d] transition-colors"
+                  className="w-full h-10 pl-10 pr-3 border border-white/30 text-white rounded focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-colors bg-white/10"
                   placeholder="Enter employee ID"
                   disabled={isLoading}
                 />
@@ -114,16 +118,16 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium uppercase tracking-wider text-[#374151]">
+              <label className="text-xs font-medium uppercase tracking-wider text-white">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#374151]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/80" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-10 pl-10 pr-3 border border-[#e2e8f0] text-sm rounded focus:outline-none focus:border-[#15803d] focus:ring-1 focus:ring-[#15803d] transition-colors"
+                  className="w-full h-10 pl-10 pr-3 border border-white/30 text-white rounded focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-colors bg-white/10"
                   placeholder="Enter password"
                   disabled={isLoading}
                 />
@@ -133,7 +137,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <button
               type="submit"
               disabled={isLoading || !employeeId || !password}
-              className="w-full h-10 bg-[#15803d] text-white font-medium text-sm hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 rounded"
+              className="w-full h-10 bg-white/20 text-white font-medium text-sm hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 rounded backdrop-blur-sm border border-white/20"
             >
               {isLoading ? (
                 <>
@@ -149,7 +153,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Quick Login Buttons */}
         <div className="mt-6">
-          <p className="text-center text-xs text-[#374151] mb-3">Quick Login (Demo)</p>
+          <p className="text-center text-xs text-white/80 mb-3">Quick Login (Demo)</p>
           <div className="grid grid-cols-5 gap-2">
             {([
               { role: 'admin_staff', label: 'Staff' },
@@ -161,7 +165,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               <button
                 key={role}
                 onClick={() => quickLogin(role)}
-                className="px-2 py-2 bg-white border border-[#e2e8f0] text-xs text-[#374151] hover:border-[#15803d] hover:text-[#15803d] transition-colors rounded"
+                className="px-2 py-2 bg-white/20 border border-white/30 text-xs text-white/80 hover:bg-white/30 hover:text-white transition-colors rounded backdrop-blur-sm"
                 title={role?.replace('_', ' ')}
               >
                 {label}
@@ -172,10 +176,10 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-[#374151]">
+          <p className="text-xs text-white/80">
             Authorized personnel only. All access is logged and monitored.
           </p>
-          <p className="text-xs text-[#374151] mt-1">
+          <p className="text-xs text-white/80 mt-1">
             v1.0.0 | MVP Build 2026.04.12
           </p>
         </div>
