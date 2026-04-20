@@ -277,6 +277,6 @@
 
 /* Selection styling */
 ::selection {
-  background-color: var(--fdms-primary);
-  color: white;
+  background-color: #fef08a;
+  color: #1e293b;
 }

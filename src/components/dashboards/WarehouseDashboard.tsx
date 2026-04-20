@@ -23,6 +23,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const stock = useStock();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showDriverModal, setShowDriverModal] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showIMS, setShowIMS] = useState(false);
   const [activeTab, setActiveTab] = useState<'orders' | 'drivers'>('orders');
@@ -138,6 +139,15 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
   };
 
   const getActionButton = () => {
@@ -600,10 +610,10 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                         <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
                           Invoice Attached
                         </span>
-                        <a href="#" onClick={(e) => { e.preventDefault(); alert(`View Invoice: ${selectedRequest.invoiceId}`); }} className="font-mono text-sm font-semibold text-emerald-700 hover:underline cursor-pointer flex items-center gap-1">
+                        <button onClick={() => setShowInvoiceModal(true)} className="font-mono text-sm font-semibold text-emerald-700 hover:underline cursor-pointer flex items-center gap-1">
                           <Link className="w-3 h-3" />
                           {selectedRequest.invoiceId}
-                        </a>
+                        </button>
                       </div>
                       <div className="p-4">
                         <div className="flex items-center justify-between">
@@ -809,6 +819,95 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice Modal */}
+      {showInvoiceModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-auto border border-[#e2e8f0] rounded animate-fade-in">
+            <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#15803d] flex items-center justify-between rounded-t sticky top-0">
+              <div className="flex items-center gap-2">
+                <Link className="w-4 h-4 text-white" />
+                <span className="text-sm font-semibold text-white">Invoice Details</span>
+              </div>
+              <button
+                onClick={() => setShowInvoiceModal(false)}
+                className="text-white hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-[#1e293b]">INVOICE</h2>
+                  <p className="text-sm text-[#64748b]">Fertilizer Distribution Management System</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-lg font-bold text-[#15803d]">{selectedRequest.invoiceId}</div>
+                  <div className="text-xs text-[#64748b]">Date: {formatDate(selectedRequest.invoiceGeneratedAt)}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-6 p-4 bg-[#f1f5f9] rounded">
+                <div>
+                  <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Bill To</span>
+                  <div className="font-semibold text-[#1e293b]">{selectedRequest.station.name}</div>
+                  <div className="text-sm text-[#64748b]">{selectedRequest.station.location}</div>
+                  <div className="text-sm text-[#64748b]">Contact: {selectedRequest.station.contactPerson}</div>
+                  <div className="text-sm text-[#64748b]">Phone: {selectedRequest.station.phone}</div>
+                </div>
+                <div>
+                  <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Request Details</span>
+                  <div className="font-mono text-sm text-[#1e293b]">Request ID: {selectedRequest.id}</div>
+                  <div className="text-sm text-[#64748b]">Priority: {selectedRequest.priority}</div>
+                  <div className="text-sm text-[#64748b]">Status: {selectedRequest.status}</div>
+                </div>
+              </div>
+
+              <table className="w-full border-collapse mb-6">
+                <thead>
+                  <tr className="bg-[#f1f5f9]">
+                    <th className="text-left text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border border-[#e2e8f0]">Item</th>
+                    <th className="text-right text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border border-[#e2e8f0]">Qty</th>
+                    <th className="text-right text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border border-[#e2e8f0]">Unit Price</th>
+                    <th className="text-right text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border border-[#e2e8f0]">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedRequest.items.map((item, idx) => (
+                    <tr key={idx}>
+                      <td className="py-2 px-3 border border-[#e2e8f0] text-sm">{item.name}</td>
+                      <td className="text-right py-2 px-3 border border-[#e2e8f0] font-mono text-sm">{item.quantity}</td>
+                      <td className="text-right py-2 px-3 border border-[#e2e8f0] font-mono text-sm">{formatCurrency(item.unitCost)}</td>
+                      <td className="text-right py-2 px-3 border border-[#e2e8f0] font-mono text-sm font-medium">{formatCurrency(item.total)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={3} className="text-right text-sm font-semibold py-2 px-3 border border-[#e2e8f0]">GRAND TOTAL:</td>
+                    <td className="text-right font-mono text-base font-bold text-[#15803d] py-2 px-3 border border-[#e2e8f0]">
+                      {formatCurrency(selectedRequest.items.reduce((sum, item) => sum + item.total, 0))}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-[#64748b]">
+                  Payment Status: <span className="font-semibold text-[#15803d]">Received from Finance</span>
+                </div>
+                <button
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="px-4 py-2 bg-[#15803d] text-white text-sm font-medium rounded hover:bg-green-800"
+                >
+                  CLOSE
+                </button>
               </div>
             </div>
           </div>

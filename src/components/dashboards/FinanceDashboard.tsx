@@ -348,7 +348,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
           <div className="flex-1 flex flex-col border-b border-[#e2e8f0]">
             <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9]">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">
-                Pending Finance ({pendingFinance.length})
+                Pending Requests ({pendingFinance.length})
               </span>
             </div>
             <div className="flex-1 overflow-auto">
