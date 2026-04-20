@@ -783,7 +783,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                 <div className="text-2xl font-bold text-[#15803d]">{formatCurrency(stats.totalValue)}</div>
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded p-4">
-                <div className="text-xs text-blue-600 uppercase mb-1">Pending Finance</div>
+                <div className="text-xs text-blue-600 uppercase mb-1">Pending Requests</div>
                 <div className="text-2xl font-bold text-[#1e293b]">{pendingFinance.length}</div>
               </div>
               <div className="bg-cyan-50 border border-cyan-200 rounded p-4">
