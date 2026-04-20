@@ -78,7 +78,7 @@ type AppAction =
   | { type: 'SELECT_REQUEST'; payload: string | null }
   | { type: 'UPDATE_REQUEST'; payload: TransportRequest }
   | { type: 'ADD_REQUEST'; payload: TransportRequest }
-  | { type: 'CREATE_NEW_REQUEST'; payload: { station: StationInfo; items: FertilizerItem[]; priority: Priority; destination: string; orderCreatedDate: Date; user: string } }
+  | { type: 'CREATE_NEW_REQUEST'; payload: { station: StationInfo; items: FertilizerItem[]; priority: Priority; destination?: string; orderCreatedDate: Date; user: string } }
   | { type: 'ADD_INVOICE'; payload: Invoice }
   | { type: 'SET_INVOICES'; payload: Invoice[] }
   | { type: 'SET_LOADING'; payload: boolean }
@@ -182,7 +182,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
     }
 
     case 'CREATE_NEW_REQUEST': {
-      const { station, items, priority, destination, orderCreatedDate, user } = action.payload;
+      const { station, items, priority, destination = '', orderCreatedDate, user } = action.payload;
       const nextId = 8900 + state.requests.length;
       const slaDeadline = new Date();
       slaDeadline.setHours(slaDeadline.getHours() + 72);

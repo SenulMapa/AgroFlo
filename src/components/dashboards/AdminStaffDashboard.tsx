@@ -29,7 +29,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
   const [fertilizerType, setFertilizerType] = useState('');
   const [quantity, setQuantity] = useState(50);
   const [priority, setPriority] = useState<Priority>('medium');
-  const [destination, setDestination] = useState('');
+  
   const [isCreating, setIsCreating] = useState(false);
 
   const districts = useMemo(() => {
@@ -120,7 +120,6 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
           total: itemTotal + tax,
         }],
         priority,
-        destination: station.name,
         orderCreatedDate,
         user: state.currentUser?.name || 'Admin Staff',
       },
@@ -131,7 +130,6 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     setSelectedStation('');
     setFertilizerType('');
     setQuantity(50);
-    setDestination('');
   };
 
   const formatDate = (date: Date) => {
@@ -485,18 +483,6 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                 </select>
               </div>
 
-              {/* Destination */}
-              <div>
-                <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Delivery Destination</label>
-                <input
-                  type="text"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  placeholder="Enter destination..."
-                  className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
-                />
-              </div>
-
               {/* Order Summary Preview */}
               {fertilizerType && quantity > 0 && (
                 <div className="bg-[#f1f5f9] rounded p-3 border border-[#e2e8f0]">
@@ -551,7 +537,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                 </button>
                 <button
                   onClick={handleCreateRequest}
-                  disabled={isCreating || !selectedStation || !fertilizerType || !destination}
+                  disabled={isCreating || !selectedStation || !fertilizerType}
                   className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
                 >
                   {isCreating ? (
