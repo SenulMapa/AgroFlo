@@ -205,27 +205,16 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return state;
       }
 
-      const slaDeadline = new Date();
-      slaDeadline.setHours(slaDeadline.getHours() + 72);
-
-      createRequest(
-        station.id,
-        destination,
-        priority,
-        user,
-        items.map(i => ({ sku: i.sku, quantity: i.quantity, unitCost: i.unitCost, tax: i.tax, total: i.total, name: i.name, type: i.type })),
-        orderCreatedDate.toISOString(),
-        slaDeadline.toISOString()
-      ).catch(err => console.error('Failed to create request in DB:', err));
-      
-      const existingIds = state.requests.map(r => {
+      // Optimistic UI update with temp ID
+      const existingCodes = state.requests.map(r => {
         const match = r.id.match(/REQ-(\d+)/);
         return match ? parseInt(match[1], 10) : 0;
       });
-      const nextId = Math.max(...existingIds, 8899) + 1;
+      const nextCode = Math.max(...existingCodes, 0) + 1;
+      const slaDeadline = new Date(Date.now() + 72 * 60 * 60 * 1000);
 
-      const newRequest: TransportRequest = {
-        id: `REQ-${nextId}`,
+      const optimisticRequest: TransportRequest = {
+        id: `REQ-${String(nextCode).padStart(5, '0')}`,
         date: new Date(),
         orderCreatedDate,
         origin: 'Station Portal',
@@ -243,14 +232,27 @@ function appReducer(state: AppState, action: AppAction): AppState {
             user,
             role: 'admin_staff',
             action: 'REQUEST_CREATED',
-            details: `Request ${nextId} created for ${station.name}`,
+            details: `Request REQ-${String(nextCode).padStart(5, '0')} created for ${station.name}`,
           },
         ],
       };
 
+      // DB write - persist to Supabase
+      createRequest(
+        station.id,
+        destination,
+        priority,
+        user,
+        items.map(i => ({ sku: i.sku, quantity: i.quantity, unitCost: i.unitCost, tax: i.tax, total: i.total, name: i.name, type: i.type }))
+      ).then(res => {
+        if (res?.request) {
+          console.log('Request created:', res.request.request_code);
+        }
+      }).catch(err => console.error('Failed to create request in DB:', err));
+
       return {
         ...state,
-        requests: [newRequest, ...state.requests],
+        requests: [optimisticRequest, ...state.requests],
       };
     }
 

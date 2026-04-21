@@ -6,7 +6,8 @@ export async function getRequests(): Promise<TransportRequest[]> {
     .from('transport_requests')
     .select(`
       *,
-      station:stations(id, name, location, district, contact_person, phone)
+      station:stations(id, name, location, district, contact_person, phone),
+      request_items(id, sku, name, fertilizer_type, quantity, unit_cost, tax, total)
     `)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -21,9 +22,10 @@ export async function getRequests(): Promise<TransportRequest[]> {
 
 function transformRequest(row: Record<string, unknown>): TransportRequest {
   const station = row.station as Record<string, string> | undefined;
+  const requestItems = (row.request_items as Record<string, unknown>[] | undefined) || [];
   
   return {
-    id: String(row.id),
+    id: String(row.request_code || row.id),
     date: new Date(String(row.created_at)),
     orderCreatedDate: row.order_created_date ? new Date(String(row.order_created_date)) : undefined,
     origin: String(row.origin || 'Station Portal'),
@@ -45,7 +47,15 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
       phone: '',
     },
     destination: String(row.destination || ''),
-    items: [],
+    items: requestItems.map(item => ({
+      sku: String(item.sku || ''),
+      name: String(item.name || ''),
+      type: String(item.fertilizer_type || ''),
+      quantity: Number(item.quantity || 0),
+      unitCost: Number(item.unit_cost || 0),
+      tax: Number(item.tax || 0),
+      total: Number(item.total || 0),
+    })),
     slaDeadline: row.sla_deadline ? new Date(String(row.sla_deadline)) : new Date(),
     createdByUser: row.created_by_user_id ? String(row.created_by_user_id) : undefined,
     auditLog: [],
@@ -102,15 +112,36 @@ export async function createRequest(
   destination: string,
   priority: string,
   userId: string,
-  items: Array<{sku: string; quantity: number; unitCost: number; tax: number; total: number; name: string; type: string}>,
-  orderCreatedDate: string,
-  slaDeadline: string
+  items: Array<{sku: string; quantity: number; unitCost: number; tax: number; total: number; name: string; type: string}>
 ) {
-  const numericId = Math.floor(Math.random() * 1000) + 9000;
-  const requestCode = `REQ-${numericId}`;
+  // Get next sequential request code
+  const { data: existing } = await supabase
+    .from('transport_requests')
+    .select('request_code')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+  
+  let nextNum = 1;
+  if (existing?.request_code) {
+    const match = existing.request_code.match(/REQ-(\d+)/);
+    if (match) nextNum = parseInt(match[1], 10) + 1;
+  }
+  const requestCode = `REQ-${String(nextNum).padStart(5, '0')}`;
+  
   const { data: request, error: reqError } = await supabase
     .from('transport_requests')
-    .insert({ request_code: requestCode, station_id: stationId, origin: 'Station Portal', destination, priority, status: 'new', created_by_user_id: userId, order_created_date: orderCreatedDate, sla_deadline: slaDeadline })
+    .insert({ 
+      request_code: requestCode, 
+      station_id: stationId, 
+      origin: 'Station Portal', 
+      destination, 
+      priority, 
+      status: 'new', 
+      created_by_user_id: userId,
+      order_created_date: new Date().toISOString(),
+      sla_deadline: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+    })
     .select()
     .single();
   if (reqError) return { request: null, error: reqError };
