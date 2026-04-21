@@ -140,9 +140,7 @@ async function handleCreateNewRequest(
 
 async function handleEditRequest(
   payload: { requestId: string; station: StationInfo; items: FertilizerItem[]; priority: Priority; user: string },
-  dispatch: React.Dispatch<AppAction>,
-  currentState: AppState
-)
+  dispatch: React.Dispatch<AppAction>
 ) {
   const { requestId, station, items, priority, user } = payload;
 
