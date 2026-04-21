@@ -171,7 +171,7 @@ export async function markInvoicePaid(invoiceId: string, paymentMethod: 'cash' |
   return invoice;
 }
 
-export async function declineInvoice(invoiceId: string, reason: string, userId: string) {
+export async function declineInvoice(invoiceId: string, reason: string) {
   const { data: invoice, error } = await supabase
     .from('invoices')
     .update({
