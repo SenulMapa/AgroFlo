@@ -170,27 +170,3 @@ export async function markInvoicePaid(invoiceId: string, paymentMethod: 'cash' |
 
   return invoice;
 }
-
-export async function declineInvoice(invoiceId: string, reason: string, userId: string) {
-  const { data: invoice, error } = await supabase
-    .from('invoices')
-    .update({
-      status: 'declined',
-      decline_reason: reason,
-    })
-    .eq('id', invoiceId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error declining invoice:', error);
-    return null;
-  }
-
-  await supabase
-    .from('transport_requests')
-    .update({ status: 'invoice_declined' })
-    .eq('invoice_id', invoiceId);
-
-  return invoice;
-}
