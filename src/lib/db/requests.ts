@@ -97,3 +97,136 @@ export async function updateRequestStatus(
 
   return data;
 }
+
+export async function createRequest(
+  stationId: string,
+  stationName: string,
+  stationDistrict: string,
+  stationLocation: string,
+  stationContact: string,
+  stationPhone: string,
+  destination: string,
+  priority: string,
+  userId: string,
+  items: Array<{sku: string; quantity: number; unitCost: number; tax: number; total: number; name: string; type: string}>,
+  orderCreatedDate: string,
+  slaDeadline: string
+) {
+  const numericId = Math.floor(Math.random() * 1000) + 9000;
+  const requestId = `REQ-${numericId}`;
+
+  const { data: request, error: reqError } = await supabase
+    .from('transport_requests')
+    .insert({
+      id: requestId,
+      station_id: stationId,
+      origin: 'Station Portal',
+      destination,
+      priority,
+      status: 'new',
+      created_by_user_id: userId,
+      order_created_date: orderCreatedDate,
+      sla_deadline: slaDeadline,
+    })
+    .select()
+    .single();
+
+  if (reqError) {
+    console.error('Error creating request:', reqError);
+    return { request: null, error: reqError };
+  }
+
+  for (const item of items) {
+    const { error: itemError } = await supabase
+      .from('request_items')
+      .insert({
+        request_id: requestId,
+        sku: item.sku,
+        name: item.name,
+        fertilizer_type: item.type,
+        quantity: item.quantity,
+        unit_cost: item.unitCost,
+        tax: item.tax,
+        total: item.total,
+      });
+
+    if (itemError) {
+      console.error('Error inserting request item:', itemError);
+    }
+  }
+
+  return { request, error: null };
+}
+
+export async function updateRequest(
+  requestId: string,
+  updates: {
+    station_id?: string;
+    destination?: string;
+    priority?: string;
+    status?: string;
+    decline_reason?: string;
+    cleared_at?: string;
+    stock_booked_at?: string;
+    picked_up_at?: string;
+    driver_assigned_at?: string;
+    delivered_at?: string;
+  }
+) {
+  const updateData: Record<string, unknown> = { ...updates };
+  
+  if (updates.cleared_at) updateData.cleared_at = updates.cleared_at;
+  if (updates.stock_booked_at) updateData.stock_booked_at = updates.stock_booked_at;
+  if (updates.picked_up_at) updateData.picked_up_at = updates.picked_up_at;
+  if (updates.driver_assigned_at) updateData.driver_assigned_at = updates.driver_assigned_at;
+  if (updates.delivered_at) updateData.delivered_at = updates.delivered_at;
+
+  const { data, error } = await supabase
+    .from('transport_requests')
+    .update(updateData)
+    .eq('id', requestId)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating request:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}
+
+export async function updateRequestItems(
+  requestId: string,
+  items: Array<{sku: string; quantity: number; unitCost: number; tax: number; total: number; name: string; type: string}>
+) {
+  const { error: deleteError } = await supabase
+    .from('request_items')
+    .delete()
+    .eq('request_id', requestId);
+
+  if (deleteError) {
+    console.error('Error deleting old items:', deleteError);
+  }
+
+  for (const item of items) {
+    const { error: itemError } = await supabase
+      .from('request_items')
+      .insert({
+        request_id: requestId,
+        sku: item.sku,
+        name: item.name,
+        fertilizer_type: item.type,
+        quantity: item.quantity,
+        unit_cost: item.unitCost,
+        tax: item.tax,
+        total: item.total,
+      });
+
+    if (itemError) {
+      console.error('Error inserting request item:', itemError);
+    }
+  }
+
+  return { error: null };
+}

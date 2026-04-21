@@ -76,3 +76,41 @@ export async function releaseStock(items: Array<{sku: string; quantity: number}>
     });
   }
 }
+
+export async function startPreppingStock(items: Array<{sku: string; quantity: number}>) {
+  for (const item of items) {
+    const { data: fertilizer } = await supabase
+      .from('fertilizers')
+      .select('id, unit_weight_kg')
+      .eq('sku', item.sku)
+      .single();
+
+    if (!fertilizer) continue;
+
+    const qtyMT = item.quantity * Number(fertilizer.unit_weight_kg) / 1000;
+
+    await supabase.rpc('move_to_prepping', {
+      p_fertilizer_id: fertilizer.id,
+      p_quantity: qtyMT,
+    });
+  }
+}
+
+export async function completePickupStock(items: Array<{sku: string; quantity: number}>) {
+  for (const item of items) {
+    const { data: fertilizer } = await supabase
+      .from('fertilizers')
+      .select('id, unit_weight_kg')
+      .eq('sku', item.sku)
+      .single();
+
+    if (!fertilizer) continue;
+
+    const qtyMT = item.quantity * Number(fertilizer.unit_weight_kg) / 1000;
+
+    await supabase.rpc('complete_pickup', {
+      p_fertilizer_id: fertilizer.id,
+      p_quantity: qtyMT,
+    });
+  }
+}
