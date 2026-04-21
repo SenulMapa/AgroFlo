@@ -83,6 +83,7 @@ type AppAction =
   | { type: 'UPDATE_REQUEST'; payload: TransportRequest }
   | { type: 'ADD_REQUEST'; payload: TransportRequest }
   | { type: 'CREATE_NEW_REQUEST'; payload: { station: StationInfo; items: FertilizerItem[]; priority: Priority; destination?: string; orderCreatedDate: Date; user: string } }
+  | { type: 'EDIT_REQUEST'; payload: { requestId: string; station: StationInfo; items: FertilizerItem[]; priority: Priority; user: string } }
   | { type: 'ADD_INVOICE'; payload: Invoice }
   | { type: 'SET_INVOICES'; payload: Invoice[] }
   | { type: 'SET_LOADING'; payload: boolean }
@@ -149,6 +150,28 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'ADD_REQUEST':
       return { ...state, requests: [action.payload, ...state.requests] };
+
+    case 'EDIT_REQUEST': {
+      const { requestId, station, items, priority, user } = action.payload;
+      return {
+        ...state,
+        requests: state.requests.map(r => {
+          if (r.id === requestId) {
+            return {
+              ...r,
+              station,
+              items,
+              priority,
+              auditLog: [
+                ...r.auditLog,
+                createAuditLog(user, 'admin_staff', 'REQUEST_EDITED', `Request edited: ${items.length} item(s)`),
+              ],
+            };
+          }
+          return r;
+        }),
+      };
+    }
 
     case 'ADD_INVOICE':
       return { ...state, invoices: [...state.invoices, action.payload] };

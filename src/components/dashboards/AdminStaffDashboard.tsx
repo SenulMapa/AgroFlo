@@ -9,7 +9,7 @@ import { isRequestOverdue, type Priority } from '@/types';
 import { fertilizerPrices } from '@/data/fertilizerDatabase';
 import {
   Search, MapPin, Calendar, Phone,
-  ArrowRight, Package, AlertCircle, Loader2
+  ArrowRight, Package, AlertCircle, Loader2, Pencil
 } from 'lucide-react';
 
 interface AdminStaffDashboardProps {
@@ -23,14 +23,22 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [districtFilter, setDistrictFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [isRouting, setIsRouting] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editStation, setEditStation] = useState('');
+  const [editFertilizerType, setEditFertilizerType] = useState('');
+  const [editQuantity, setEditQuantity] = useState(50);
+  const [editPriority, setEditPriority] = useState<Priority>('medium');
   const [selectedStation, setSelectedStation] = useState('');
   const [fertilizerType, setFertilizerType] = useState('');
   const [quantity, setQuantity] = useState(50);
   const [priority, setPriority] = useState<Priority>('medium');
   
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const districts = useMemo(() => {
     const uniqueDistricts = new Set(requests.map(r => r.station.district));
@@ -47,9 +55,13 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
       const matchesDistrict = districtFilter === 'all' || request.station.district === districtFilter;
       const matchesPriority = priorityFilter === 'all' || request.priority === priorityFilter;
 
-      return matchesSearch && matchesDistrict && matchesPriority;
+      const reqDate = new Date(request.date);
+      const matchesDateFrom = !dateFrom || reqDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || reqDate <= new Date(dateTo + 'T23:59:59');
+
+      return matchesSearch && matchesDistrict && matchesPriority && matchesDateFrom && matchesDateTo;
     });
-  }, [requests, searchQuery, districtFilter, priorityFilter]);
+  }, [requests, searchQuery, districtFilter, priorityFilter, dateFrom, dateTo]);
 
   const newRequests = filteredRequests.filter(r => r.status === 'new');
 
@@ -145,6 +157,65 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     });
   };
 
+  const handleEditClick = () => {
+    if (!selectedRequest) return;
+    const item = selectedRequest.items[0];
+    setEditStation(selectedRequest.station.id);
+    setEditFertilizerType(item?.type || '');
+    setEditQuantity(item?.quantity || 50);
+    setEditPriority(selectedRequest.priority);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedRequest || !editStation || !editFertilizerType) return;
+    if (editQuantity <= 0 || editQuantity > 10000) {
+      alert('Please enter a valid quantity between 1 and 10,000');
+      return;
+    }
+
+    setIsEditing(true);
+    const ferData = fertilizerPrices.find(p => p.type === editFertilizerType);
+    if (!ferData) { setIsEditing(false); return; }
+
+    const stations = [
+      { id: 'STN-1001', name: 'Colombo Central Station', district: 'Colombo', location: 'Colombo', contactPerson: 'Station Manager 1', phone: '+94 11 2000123' },
+      { id: 'STN-1002', name: 'Kandy District Office', district: 'Kandy', location: 'Kandy', contactPerson: 'Station Manager 2', phone: '+94 81 2000124' },
+      { id: 'STN-1003', name: 'Galle Regional Hub', district: 'Galle', location: 'Galle', contactPerson: 'Station Manager 3', phone: '+94 91 2000125' },
+      { id: 'STN-1004', name: 'Jaffna Branch', district: 'Jaffna', location: 'Jaffna', contactPerson: 'Station Manager 4', phone: '+94 21 2000126' },
+      { id: 'STN-1005', name: 'Matale Supply Point', district: 'Matale', location: 'Matale', contactPerson: 'Station Manager 5', phone: '+94 66 2000127' },
+      { id: 'STN-1006', name: 'Kalutara Distribution Center', district: 'Kalutara', location: 'Kalutara', contactPerson: 'Station Manager 6', phone: '+94 34 2000128' },
+      { id: 'STN-1007', name: 'Gampaha Station', district: 'Gampaha', location: 'Gampaha', contactPerson: 'Station Manager 7', phone: '+94 33 2000129' },
+      { id: 'STN-1008', name: 'Kurunegala Depot', district: 'Kurunegala', location: 'Kurunegala', contactPerson: 'Station Manager 8', phone: '+94 37 2000130' },
+    ];
+    const station = stations.find(s => s.id === editStation) || stations[0];
+    const itemTotal = ferData.unitCost * editQuantity;
+    const tax = itemTotal * ferData.taxRate;
+    const items = [{
+      sku: ferData.sku,
+      name: ferData.name,
+      type: ferData.type,
+      quantity: editQuantity,
+      unitCost: ferData.unitCost,
+      tax,
+      total: itemTotal + tax,
+    }];
+
+    dispatch({
+      type: 'EDIT_REQUEST',
+      payload: {
+        requestId: selectedRequest.id,
+        station,
+        items,
+        priority: editPriority,
+        user: state.currentUser?.name || 'Admin Staff',
+      },
+    });
+
+    setIsEditing(false);
+    setShowEditModal(false);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-LK', {
       style: 'currency',
@@ -195,6 +266,22 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                 <option value="medium">Medium</option>
                 <option value="low">Low</option>
               </select>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="flex-1 h-7 px-2 border border-[#e2e8f0] text-xs focus:outline-none focus:border-[#15803d] bg-white rounded"
+                title="From date"
+              />
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="flex-1 h-7 px-2 border border-[#e2e8f0] text-xs focus:outline-none focus:border-[#15803d] bg-white rounded"
+                title="To date"
+              />
             </div>
           </div>
 
@@ -291,23 +378,32 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                     </div>
                   </div>
                   {selectedRequest.status === 'new' && (
-                    <button
-                      onClick={handleRouteToSigning}
-                      disabled={isRouting}
-                      className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
-                    >
-                      {isRouting ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                          ROUTING...
-                        </>
-                      ) : (
-                        <>
-                          ROUTE TO ADMIN
-                          <ArrowRight className="w-3 h-3 ml-1" />
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleEditClick}
+                        className="inline-flex items-center justify-center h-8 px-3 text-xs font-medium bg-white border border-[#e2e8f0] text-[#1e293b] hover:bg-gray-50 transition-colors rounded"
+                      >
+                        <Pencil className="w-3 h-3 mr-1" />
+                        EDIT
+                      </button>
+                      <button
+                        onClick={handleRouteToSigning}
+                        disabled={isRouting}
+                        className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+                      >
+                        {isRouting ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                            ROUTING...
+                          </>
+                        ) : (
+                          <>
+                            ROUTE TO ADMIN
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -552,6 +648,118 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                     </>
                   ) : (
                     'CREATE REQUEST'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Request Modal */}
+      {showEditModal && selectedRequest && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-lg border border-[#e2e8f0] rounded animate-fade-in">
+            <div className="px-4 py-3 border-b border-[#e2e8f0] bg-blue-600 flex items-center justify-between rounded-t">
+              <div className="flex items-center gap-2">
+                <Pencil className="w-4 h-4 text-white" />
+                <span className="text-sm font-semibold text-white">Edit Fertilizer Request</span>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="text-white hover:text-gray-200 text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* Station Selection */}
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Station</label>
+                <select
+                  value={editStation}
+                  onChange={(e) => setEditStation(e.target.value)}
+                  className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                >
+                  <option value="">Select Station...</option>
+                  <option value="STN-1001">Colombo Central Station</option>
+                  <option value="STN-1002">Kandy District Office</option>
+                  <option value="STN-1003">Galle Regional Hub</option>
+                  <option value="STN-1004">Jaffna Branch</option>
+                  <option value="STN-1005">Matale Supply Point</option>
+                  <option value="STN-1006">Kalutara Distribution Center</option>
+                  <option value="STN-1007">Gampaha Station</option>
+                  <option value="STN-1008">Kurunegala Depot</option>
+                </select>
+              </div>
+
+              {/* Fertilizer Type */}
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Fertilizer Type</label>
+                <select
+                  value={editFertilizerType}
+                  onChange={(e) => setEditFertilizerType(e.target.value)}
+                  className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                >
+                  <option value="">Select Fertilizer...</option>
+                  <option value="Urea">Urea (46-0-0) - LKR 4,500/bag</option>
+                  <option value="DAP">DAP (18-46-0) - LKR 8,200/bag</option>
+                  <option value="MOP">MOP (0-0-60) - LKR 6,800/bag</option>
+                  <option value="NPK">NPK (15-15-15) - LKR 7,500/bag</option>
+                  <option value="TSP">TSP (0-46-0) - LKR 5,200/bag</option>
+                  <option value="Sulphur">Sulphur (90%) - LKR 3,200/bag</option>
+                </select>
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Quantity (bags)</label>
+                <input
+                  type="number"
+                  value={editQuantity}
+                  onChange={(e) => setEditQuantity(Number(e.target.value))}
+                  min={10}
+                  max={10000}
+                  className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                />
+              </div>
+
+              {/* Priority */}
+              <div>
+                <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Priority</label>
+                <select
+                  value={editPriority}
+                  onChange={(e) => setEditPriority(e.target.value as Priority)}
+                  className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-2 pt-2 border-t border-[#e2e8f0]">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-white border border-[#e2e8f0] text-[#1e293b] hover:bg-gray-50 transition-colors rounded"
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={isEditing || !editStation || !editFertilizerType}
+                  className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+                >
+                  {isEditing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                      SAVING...
+                    </>
+                  ) : (
+                    'SAVE CHANGES'
                   )}
                 </button>
               </div>
