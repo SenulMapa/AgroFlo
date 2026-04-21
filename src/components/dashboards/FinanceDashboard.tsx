@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { useAppStore, useRequests, useSelectedRequest, useInvoices } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
-import { AuditLog } from '../shared/AuditLog';
 import { toast } from 'sonner';
 import {
   FileText, CheckCircle, DollarSign,
@@ -624,7 +623,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                   </table>
                 </div>
 
-                <AuditLog entries={selectedRequest.auditLog} />
+
               </div>
             )}
           </div>
