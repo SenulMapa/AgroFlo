@@ -4,7 +4,7 @@ import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { toast } from 'sonner';
 import {
-  FileText, CheckCircle, DollarSign,
+  FileText, CheckCircle,
   TrendingUp, Printer, XCircle, Loader2,
   BarChart3, Share2
 } from 'lucide-react';
@@ -329,7 +329,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-emerald-100 flex items-center justify-center rounded">
-            <DollarSign className="w-4 h-4 text-[#15803d]" />
+            <span className="text-lg font-mono font-semibold text-[#1e293b]">LKR {stats.totalValue.toLocaleString()}</span>
           </div>
           <div>
             <div className="text-lg font-mono font-semibold text-[#1e293b]">{formatCurrency(stats.totalValue)}</div>
@@ -471,7 +471,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
             {!selectedRequest ? (
               <div className="h-full flex items-center justify-center">
                 <div className="text-center">
-                  <DollarSign className="w-12 h-12 text-[#e2e8f0] mx-auto mb-3" />
+                  <FileText className="w-12 h-12 text-[#e2e8f0] mx-auto mb-3" />
                   <p className="text-sm text-[#64748b] uppercase tracking-wider">
                     Select request to process
                   </p>
@@ -534,7 +534,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                         disabled={isProcessing}
                         className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
                       >
-                        <DollarSign className="w-4 h-4 mr-1" />
+                        <span className="text-xs font-medium mr-1">LKR</span>
                         PAYMENT MADE
                       </button>
                     )}
