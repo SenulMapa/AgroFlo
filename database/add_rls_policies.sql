@@ -1,5 +1,6 @@
 -- ============================================================
 -- RLS Policies for all tables
+-- Requires auth.jwt() to be valid - rejects anon key without JWT
 -- Run this in Supabase SQL Editor
 -- ============================================================
 
@@ -19,21 +20,22 @@ ALTER TABLE drivers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE assigned_drivers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE driver_bids ENABLE ROW LEVEL SECURITY;
 
--- Create policies allowing all operations for authenticated users
-CREATE POLICY "service_account_access_users" ON users FOR ALL USING (true);
-CREATE POLICY "service_account_access_sessions" ON sessions FOR ALL USING (true);
-CREATE POLICY "service_account_access_audit" ON audit_logs FOR ALL USING (true);
-CREATE POLICY "service_account_access_stations" ON stations FOR ALL USING (true);
-CREATE POLICY "service_account_access_receivers" ON receivers FOR ALL USING (true);
-CREATE POLICY "service_account_access_fertilizers" ON fertilizers FOR ALL USING (true);
-CREATE POLICY "service_account_access_stock" ON stock FOR ALL USING (true);
-CREATE POLICY "service_account_access_transport_requests" ON transport_requests FOR ALL USING (true);
-CREATE POLICY "service_account_access_request_items" ON request_items FOR ALL USING (true);
-CREATE POLICY "service_account_access_invoices" ON invoices FOR ALL USING (true);
-CREATE POLICY "service_account_access_invoice_items" ON invoice_items FOR ALL USING (true);
-CREATE POLICY "service_account_access_drivers" ON drivers FOR ALL USING (true);
-CREATE POLICY "service_account_access_assigned_drivers" ON assigned_drivers FOR ALL USING (true);
-CREATE POLICY "service_account_access_driver_bids" ON driver_bids FOR ALL USING (true);
+-- Create policies requiring authenticated JWT (auth.role() = 'authenticated')
+-- This prevents anon key from being used directly - must have valid JWT
+CREATE POLICY "authenticated_access_users" ON users FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_sessions" ON sessions FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_audit" ON audit_logs FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_stations" ON stations FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_receivers" ON receivers FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_fertilizers" ON fertilizers FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_stock" ON stock FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_transport_requests" ON transport_requests FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_request_items" ON request_items FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_invoices" ON invoices FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_invoice_items" ON invoice_items FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_drivers" ON drivers FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_assigned_drivers" ON assigned_drivers FOR ALL USING (auth.role() = 'authenticated');
+CREATE POLICY "authenticated_access_driver_bids" ON driver_bids FOR ALL USING (auth.role() = 'authenticated');
 
 -- Verify policies created
 SELECT schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check

@@ -116,7 +116,7 @@ export async function createRequest(
   if (reqError) return { request: null, error: reqError };
   if (!request?.id) return { request: null, error: { message: 'Failed to get inserted request ID' } };
   for (const item of items) {
-    await supabase.from('request_items').insert({ request_id: request.id, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, type: item.type });
+    await supabase.from('request_items').insert({ request_id: request.id, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, fertilizer_type: item.type });
   }
   return { request, error: null };
 }
@@ -129,7 +129,7 @@ export async function updateRequest(requestId: string, updates: { station_id?: s
 export async function updateRequestItems(requestId: string, items: Array<{sku: string; name: string; quantity: number; unitCost: number; tax: number; total: number; type: string}>) {
   await supabase.from('request_items').delete().eq('request_id', requestId);
   for (const item of items) {
-    await supabase.from('request_items').insert({ request_id: requestId, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, type: item.type });
+    await supabase.from('request_items').insert({ request_id: requestId, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, fertilizer_type: item.type });
   }
   return { error: null };
 }
