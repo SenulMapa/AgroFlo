@@ -159,13 +159,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               { role: 'admin_staff', label: 'Staff' },
               { role: 'admin_manager', label: 'Admin' },
               { role: 'finance', label: 'Finance' },
-              { role: 'warehouse', label: 'WHSE' },
+              { role: 'warehouse', label: 'Warehouse' },
               { role: 'receiver', label: 'Receiver' },
             ] as { role: UserRole; label: string }[]).map(({ role, label }) => (
               <button
                 key={role}
                 onClick={() => quickLogin(role)}
-                className="px-1 py-2 bg-white/30 border border-white/40 text-[10px] text-black hover:bg-white/40 transition-colors rounded backdrop-blur-sm"
+                className="px-1 py-2 bg-white/30 border border-white/40 text-[11px] text-black hover:bg-white/40 transition-colors rounded backdrop-blur-sm"
                 title={role?.replace('_', ' ')}
               >
                 {label}
