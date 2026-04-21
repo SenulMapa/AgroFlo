@@ -1,8 +1,8 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { TransportRequest, User, UserRole, Invoice, DriverInfo, DriverBid, StockItem, FertilizerItem, StationInfo, Priority } from '@/types';
-import { getRequests } from '@/lib/db/requests';
+import { getRequests, createRequest } from '@/lib/db/requests';
 import { getDrivers } from '@/lib/db/drivers';
-import { getStock } from '@/lib/db/stock';
+import { getStock, bookStock } from '@/lib/db/stock';
 import { getInvoices } from '@/lib/db/invoices';
 
 function restoreDates<T extends { date?: string | Date; slaDeadline?: string | Date; clearedAt?: string | Date; invoiceGeneratedAt?: string | Date; stockBookedAt?: string | Date; driverAssignedAt?: string | Date; pickedUpAt?: string | Date; deliveredAt?: string | Date; generatedAt?: string | Date; releasedAt?: string | Date; paidAt?: string | Date; auditLog?: { timestamp: string | Date }[] }>(data: T[]): T[] {
@@ -190,13 +190,26 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'CREATE_NEW_REQUEST': {
       const { station, items, priority, destination = '', orderCreatedDate, user } = action.payload;
+      
+      const slaDeadline = new Date();
+      slaDeadline.setHours(slaDeadline.getHours() + 72);
+      
+      // DB write - persist to Supabase
+      createRequest(
+        station.id,
+        destination,
+        priority,
+        user,
+        items.map(i => ({ sku: i.sku, quantity: i.quantity, unitCost: i.unitCost, tax: i.tax, total: i.total, name: i.name, type: i.type })),
+        orderCreatedDate.toISOString(),
+        slaDeadline.toISOString()
+      ).catch(err => console.error('Failed to create request in DB:', err));
+      
       const existingIds = state.requests.map(r => {
         const match = r.id.match(/REQ-(\d+)/);
         return match ? parseInt(match[1], 10) : 0;
       });
       const nextId = Math.max(...existingIds, 8899) + 1;
-      const slaDeadline = new Date();
-      slaDeadline.setHours(slaDeadline.getHours() + 72);
 
       const newRequest: TransportRequest = {
         id: `REQ-${nextId}`,
@@ -232,6 +245,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const { requestId, user } = action.payload;
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
+
+      // DB write - call bookStock RPC
+      bookStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err => console.error('Failed to book stock:', err));
 
       const updatedStock = state.stock.map(stockItem => {
         const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
