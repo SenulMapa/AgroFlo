@@ -94,6 +94,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     if (!selectedStation || !fertilizerType || !state.currentUser?.id) {
       console.error('Missing required fields for request creation');
       return;
+    }
     
     if (quantity <= 0 || quantity > 10000) {
       alert('Please enter a valid quantity between 1 and 10,000');
@@ -174,6 +175,8 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     if (!selectedRequest || !editStation || !editFertilizerType || !state.currentUser?.id) {
       console.error('Missing required fields for edit:', { stationId: editStation, fertilizer: editFertilizerType, userId: state.currentUser?.id });
       return;
+    }
+    
     if (editQuantity <= 0 || editQuantity > 10000) {
       alert('Please enter a valid quantity between 1 and 10,000');
       return;
