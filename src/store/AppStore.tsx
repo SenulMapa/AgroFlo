@@ -2,7 +2,7 @@ import { createContext, useContext, useReducer, useEffect, type ReactNode } from
 import type { TransportRequest, User, UserRole, Invoice, DriverInfo, DriverBid, StockItem, FertilizerItem, StationInfo, Priority } from '@/types';
 import { getRequests, createRequest, updateRequest, updateRequestItems, updateRequestStatus } from '@/lib/db/requests';
 import { getDrivers } from '@/lib/db/drivers';
-import { getStock, bookStock, startPreppingStock, completePickupStock } from '@/lib/db/stock';
+import { getStock, bookStock, releaseStock, startPreppingStock, completePickupStock } from '@/lib/db/stock';
 import { getInvoices } from '@/lib/db/invoices';
 import { toast } from 'sonner';
 
@@ -105,7 +105,8 @@ const initialState: AppState = {
 
 async function handleCreateNewRequest(
   payload: { station: StationInfo; items: FertilizerItem[]; priority: Priority; destination?: string; orderCreatedDate: Date; user: string },
-  dispatch: React.Dispatch<AppAction>
+  dispatch: React.Dispatch<AppAction>,
+  currentState: AppState
 ) {
   const { station, items, priority, destination, orderCreatedDate, user } = payload;
   
@@ -114,9 +115,14 @@ async function handleCreateNewRequest(
 
   const dbResult = await createRequest(
     station.id,
-    user,
+    station.name,
+    station.district,
+    station.location,
+    station.contactPerson,
+    station.phone,
     destination || '',
     priority,
+    user,
     items.map(i => ({
       sku: i.sku,
       quantity: i.quantity,
@@ -140,7 +146,8 @@ async function handleCreateNewRequest(
 
 async function handleEditRequest(
   payload: { requestId: string; station: StationInfo; items: FertilizerItem[]; priority: Priority; user: string },
-  dispatch: React.Dispatch<AppAction>
+  dispatch: React.Dispatch<AppAction>,
+  currentState: AppState
 ) {
   const { requestId, station, items, priority, user } = payload;
 
@@ -166,7 +173,6 @@ async function handleRouteRequest(
   payload: { requestId: string; newStatus: TransportRequest['status']; user: string; role: UserRole },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const { requestId, newStatus } = payload;
   
@@ -184,7 +190,6 @@ async function handleApproveRequest(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request) return;
@@ -200,7 +205,6 @@ async function handleDeclineRequest(
   payload: { requestId: string; reason: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const { requestId, reason } = payload;
 
@@ -216,7 +220,6 @@ async function handleGenerateInvoice(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request) return;
@@ -247,7 +250,6 @@ async function handleReleaseInvoice(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request?.invoiceId) return;
@@ -267,7 +269,6 @@ async function handleMarkInvoicePaid(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request?.invoiceId) return;
@@ -287,7 +288,6 @@ async function handleClearForWarehouse(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const { requestId } = payload;
 
@@ -303,7 +303,6 @@ async function handleBookStock(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request) return;
@@ -322,7 +321,6 @@ async function handleStartPrepping(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request) return;
@@ -338,7 +336,6 @@ async function handleMarkPickedUp(
   payload: { requestId: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request) return;
@@ -357,7 +354,6 @@ async function handleAssignDriver(
   payload: { requestId: string; driver: DriverInfo; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const { assignDriver } = await import('@/lib/db/drivers');
   
@@ -375,7 +371,6 @@ async function handleDeclineInvoice(
   payload: { requestId: string; reason: string; user: string },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const request = currentState.requests.find(r => r.id === payload.requestId);
   if (!request?.invoiceId) return;
@@ -395,7 +390,6 @@ async function handleAddDriverBid(
   payload: { requestId: string; bid: DriverBid },
   dispatch: React.Dispatch<AppAction>,
   currentState: AppState
-)
 ) {
   const { submitDriverBid } = await import('@/lib/db/drivers');
   

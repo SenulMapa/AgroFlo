@@ -100,9 +100,14 @@ export async function updateRequestStatus(
 
 export async function createRequest(
   stationId: string,
-  userId: string,
+  stationName: string,
+  stationDistrict: string,
+  stationLocation: string,
+  stationContact: string,
+  stationPhone: string,
   destination: string,
   priority: string,
+  userId: string,
   items: Array<{sku: string; quantity: number; unitCost: number; tax: number; total: number; name: string; type: string}>,
   orderCreatedDate: string,
   slaDeadline: string
