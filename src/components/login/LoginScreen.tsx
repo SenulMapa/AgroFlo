@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAppStore } from '@/store/AppStore';
 import type { UserRole } from '@/types';
-import { credentials, mockUsers } from '@/data/mockData';
+import { loginUser } from '@/lib/db/users';
+import { credentials } from '@/data/mockData';
 import { Sprout, User, Lock, AlertCircle, Loader2 } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -20,36 +21,30 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     setError(null);
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    // Validate credentials
-    const user = mockUsers.find(u => u.employeeId === employeeId);
-
-    if (!user) {
+    const role = Object.entries(credentials).find(([, c]) => c.employeeId === employeeId)?.[0] as UserRole | undefined;
+    if (!role) {
       setError('Invalid employee ID');
       setIsLoading(false);
       return;
     }
 
-    const cred = credentials[user.role as keyof typeof credentials];
-    if (!cred || cred.password !== password) {
-      setError('Invalid password');
+    const user = await loginUser(employeeId, role);
+
+    if (!user) {
+      setError('Invalid credentials');
       setIsLoading(false);
       return;
     }
 
-    // Login successful
     dispatch({ type: 'SET_USER', payload: user });
     setIsLoading(false);
-    onLogin(user.role);
+    onLogin(role);
   };
 
   const quickLogin = (role: UserRole) => {
     if (!role) return;
     const cred = credentials[role];
-    const user = mockUsers.find(u => u.employeeId === cred.employeeId);
-    if (user) {
+    if (cred) {
       setEmployeeId(cred.employeeId);
       setPassword(cred.password);
     }
