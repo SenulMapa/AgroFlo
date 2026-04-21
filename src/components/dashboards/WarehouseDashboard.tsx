@@ -4,6 +4,7 @@ import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
 import type { DriverInfo } from '@/types';
+import { toast } from 'sonner';
 import {
   Package, CheckCircle, Truck, User, Phone,
   Star, Loader2, AlertCircle, Box,
@@ -101,6 +102,10 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
         requestId: selectedRequest.id,
         user: state.currentUser?.name || 'Warehouse',
       },
+    });
+
+    toast.success('Order picked up', {
+      description: `Driver ${selectedRequest.assignedDriver?.name} has picked up the order`,
     });
 
     setIsProcessing(false);
@@ -228,6 +233,53 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
           </div>
         );
       }
+      case 'order_picked_up':
+        return (
+          <button
+            onClick={async () => {
+              if (!selectedRequest) return;
+              setIsProcessing(true);
+              await new Promise(resolve => setTimeout(resolve, 500));
+              dispatch({
+                type: 'UPDATE_REQUEST',
+                payload: {
+                  ...selectedRequest,
+                  status: 'delivered',
+                  deliveredAt: new Date(),
+                  auditLog: [
+                    ...selectedRequest.auditLog,
+                    {
+                      id: Math.random().toString(36).substr(2, 9),
+                      timestamp: new Date(),
+                      user: state.currentUser?.name || 'Warehouse',
+                      role: 'warehouse',
+                      action: 'DELIVERED',
+                      details: `Order delivered to ${selectedRequest.station.name}`,
+                    },
+                  ],
+                },
+              });
+              toast.success('Order delivered', {
+                description: `Order ${selectedRequest.id} has been delivered`,
+              });
+              setIsProcessing(false);
+            }}
+            disabled={isProcessing}
+            className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                PROCESSING...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-1" />
+                MARK AS DELIVERED
+              </>
+            )}
+          </button>
+        );
       default:
         return null;
     }
@@ -697,16 +749,6 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-xs text-[#64748b]">ETA</div>
-                            <div className="text-sm font-mono font-semibold text-[#1e293b]">
-                              {selectedRequest.route ? `${Math.ceil(selectedRequest.route.distance / 60)} hours` : '--'}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="bg-gray-100 rounded p-2 text-xs text-[#64748b]">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-teal-500 rounded-full animate-pulse"></span>
-                            Tracking active - Real-time GPS updates
                           </div>
                         </div>
                       </div>

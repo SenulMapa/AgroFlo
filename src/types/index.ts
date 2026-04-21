@@ -103,6 +103,7 @@ export interface TransportRequest {
   driverBids?: DriverBid[];
   pickedUpAt?: Date;
   deliveredAt?: Date;
+  lastNotifiedAt?: Date;
   route?: {
     from: string;
     to: string;

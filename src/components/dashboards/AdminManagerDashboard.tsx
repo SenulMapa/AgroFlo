@@ -6,6 +6,7 @@ import { PriorityBadge } from '../shared/PriorityBadge';
 import { SLACountdown } from '../shared/SLACountdown';
 import { AuditLog } from '../shared/AuditLog';
 import { isRequestOverdue } from '@/types';
+import { toast } from 'sonner';
 import { CheckCircle, XCircle, AlertCircle, Loader2, Clock, FileText, Warehouse } from 'lucide-react';
 
 interface AdminManagerDashboardProps {
@@ -46,6 +47,10 @@ const [showDeclineModal, setShowDeclineModal] = useState(false);
       },
     });
 
+    toast.success('Request approved successfully', {
+      description: `${selectedRequest.id} has been approved and stock released`,
+    });
+
     setIsProcessing(false);
   };
 
@@ -73,6 +78,10 @@ const [showDeclineModal, setShowDeclineModal] = useState(false);
         reason: declineReason,
         user: state.currentUser?.name || 'Admin Manager',
       },
+    });
+
+    toast.error('Request declined', {
+      description: `${selectedRequest.id} has been declined`,
     });
 
     setIsProcessing(false);

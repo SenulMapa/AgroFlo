@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRequests } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import type { RequestStatus } from '@/types';
+import { toast } from 'sonner';
 import {
   Package, Truck, CheckCircle, Clock, MapPin,
   Search, ChevronRight, Circle
@@ -29,6 +30,21 @@ const STATUS_FLOW: { status: RequestStatus; label: string }[] = [
 export function ReceiverPortal({ onLogout }: ReceiverPortalProps) {
   const requests = useRequests();
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastDeliveredId, setLastDeliveredId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const deliveredRequest = requests.find(r => 
+      r.status === 'delivered' && 
+      r.id !== lastDeliveredId &&
+      (!r.lastNotifiedAt || new Date(r.lastNotifiedAt).getTime() < new Date(r.deliveredAt!).getTime())
+    );
+    if (deliveredRequest) {
+      setLastDeliveredId(deliveredRequest.id);
+      toast.success('Delivery confirmed!', {
+        description: `Order ${deliveredRequest.id} has been successfully delivered to ${deliveredRequest.station.name}`,
+      });
+    }
+  }, [requests, lastDeliveredId]);
 
   const foundRequest = useMemo(() => {
     if (!searchQuery.trim()) return null;

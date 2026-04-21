@@ -7,6 +7,7 @@ import { SLACountdown } from '../shared/SLACountdown';
 import { AuditLog } from '../shared/AuditLog';
 import { isRequestOverdue, type Priority } from '@/types';
 import { fertilizerPrices } from '@/data/fertilizerDatabase';
+import { toast } from 'sonner';
 import {
   Search, MapPin, Calendar, Phone,
   ArrowRight, Package, AlertCircle, Loader2, Pencil
@@ -123,6 +124,12 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     const tax = itemTotal * ferData.taxRate;
     const orderCreatedDate = new Date();
 
+    const existingIds = requests.map(r => {
+      const match = r.id.match(/REQ-(\d+)/);
+      return match ? parseInt(match[1], 10) : 0;
+    });
+    const nextId = Math.max(...existingIds, 8899) + 1;
+
     dispatch({
       type: 'CREATE_NEW_REQUEST',
       payload: {
@@ -147,6 +154,9 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     setSelectedStation('');
     setFertilizerType('');
     setQuantity(50);
+    toast.success('Fertilizer request created successfully', {
+      description: `Request ID: REQ-${nextId}`,
+    });
   };
 
   const formatDate = (date: Date) => {

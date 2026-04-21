@@ -3,6 +3,7 @@ import { useAppStore, useRequests, useSelectedRequest, useInvoices } from '@/sto
 import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
+import { toast } from 'sonner';
 import {
   FileText, CheckCircle, DollarSign,
   TrendingUp, Printer, XCircle, Loader2,
@@ -102,6 +103,11 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
       },
     });
 
+    const invoiceId = `INV-${selectedRequest.id.split('-')[1]}`;
+    toast.success('Invoice generated successfully', {
+      description: `Invoice ID: ${invoiceId}`,
+    });
+
     setIsGenerating(false);
   };
 
@@ -117,6 +123,10 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
         requestId: selectedRequest.id,
         user: state.currentUser?.name || 'Finance',
       },
+    });
+
+    toast.success('Invoice released to warehouse', {
+      description: `Request ${selectedRequest.id} cleared for dispatch`,
     });
 
     setIsProcessing(false);
@@ -141,6 +151,10 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
         reason: declineReason,
         user: state.currentUser?.name || 'Finance',
       },
+    });
+
+    toast.error('Invoice declined', {
+      description: `${selectedRequest.invoiceId} has been declined`,
     });
 
     setIsProcessing(false);
@@ -512,7 +526,12 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                     )}
                     {selectedRequest.status === 'released' && (
                       <button
-                        onClick={() => dispatch({ type: 'MARK_INVOICE_PAID', payload: { requestId: selectedRequest.id, user: state.currentUser?.name || 'Finance' } })}
+                        onClick={() => {
+                          dispatch({ type: 'MARK_INVOICE_PAID', payload: { requestId: selectedRequest.id, user: state.currentUser?.name || 'Finance' } });
+                          toast.success('Payment confirmed', {
+                            description: `Payment for ${selectedRequest.invoiceId} has been confirmed`,
+                          });
+                        }}
                         disabled={isProcessing}
                         className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
                       >
