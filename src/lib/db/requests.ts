@@ -110,7 +110,7 @@ export async function createRequest(
   const requestId = `REQ-${numericId}`;
   const { data: request, error: reqError } = await supabase
     .from('transport_requests')
-    .insert({ id: requestId, request_code: requestId, station_id: stationId, origin: 'Station Portal', destination, priority, status: 'new', created_by_user_id: userId, order_created_date: orderCreatedDate, sla_deadline: slaDeadline })
+    .insert({ request_code: requestId, station_id: stationId, origin: 'Station Portal', destination, priority, status: 'new', created_by_user_id: userId, order_created_date: orderCreatedDate, sla_deadline: slaDeadline })
     .select().single();
   if (reqError) return { request: null, error: reqError };
   for (const item of items) {
