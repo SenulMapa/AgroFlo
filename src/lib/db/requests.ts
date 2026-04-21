@@ -6,7 +6,7 @@ export async function getRequests(): Promise<TransportRequest[]> {
     .from('transport_requests')
     .select(`
       *,
-      station:stations!station_id(name, location, district, contact_person, phone)
+      station:stations(id, name, location, district, contact_person, phone)
     `)
     .order('created_at', { ascending: false })
     .limit(100);
