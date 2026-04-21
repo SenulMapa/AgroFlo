@@ -5,7 +5,26 @@ import { getDrivers } from '@/lib/db/drivers';
 import { getStock } from '@/lib/db/stock';
 import { getInvoices } from '@/lib/db/invoices';
 
-const STORAGE_KEY = 'agriflo_state';
+function restoreDates<T extends Record<string, any>>(data: T[]): T[] {
+  return data.map((item) => {
+    const restored = { ...item };
+    if (restored.date) restored.date = new Date(restored.date);
+    if (restored.slaDeadline) restored.slaDeadline = new Date(restored.slaDeadline);
+    if (restored.clearedAt) restored.clearedAt = new Date(restored.clearedAt);
+    if (restored.invoiceGeneratedAt) restored.invoiceGeneratedAt = new Date(restored.invoiceGeneratedAt);
+    if (restored.stockBookedAt) restored.stockBookedAt = new Date(restored.stockBookedAt);
+    if (restored.driverAssignedAt) restored.driverAssignedAt = new Date(restored.driverAssignedAt);
+    if (restored.pickedUpAt) restored.pickedUpAt = new Date(restored.pickedUpAt);
+    if (restored.deliveredAt) restored.deliveredAt = new Date(restored.deliveredAt);
+    if (restored.generatedAt) restored.generatedAt = new Date(restored.generatedAt);
+    if (restored.releasedAt) restored.releasedAt = new Date(restored.releasedAt);
+    if (restored.paidAt) restored.paidAt = new Date(restored.paidAt);
+    if (restored.auditLog?.length) {
+      restored.auditLog = restored.auditLog.map((a: any) => ({ ...a, timestamp: new Date(a.timestamp) }));
+    }
+    return restored;
+  });
+}
 
 async function loadFromDB(): Promise<Partial<AppState>> {
   try {
@@ -20,48 +39,15 @@ async function loadFromDB(): Promise<Partial<AppState>> {
     if (requests.length === 0 && drivers.length === 0 && stock.length === 0) {
       console.warn('No data from Supabase - all tables empty!');
     }
-    return { requests, drivers, stock, invoices } as Partial<AppState>;
+    return {
+      requests: restoreDates(requests),
+      drivers,
+      stock,
+      invoices: restoreDates(invoices),
+    } as Partial<AppState>;
   } catch (e) {
     console.error('Failed to load from Supabase DB:', e);
     return {};
-  }
-}
-
-function loadFromStorage(): AppState | null {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      // Restore Date objects
-      parsed.requests = parsed.requests.map((r: TransportRequest) => ({
-        ...r,
-        date: new Date(r.date),
-        slaDeadline: new Date(r.slaDeadline),
-        clearedAt: r.clearedAt ? new Date(r.clearedAt) : undefined,
-        invoiceGeneratedAt: r.invoiceGeneratedAt ? new Date(r.invoiceGeneratedAt) : undefined,
-        stockBookedAt: r.stockBookedAt ? new Date(r.stockBookedAt) : undefined,
-        driverAssignedAt: r.driverAssignedAt ? new Date(r.driverAssignedAt) : undefined,
-        pickedUpAt: r.pickedUpAt ? new Date(r.pickedUpAt) : undefined,
-        deliveredAt: r.deliveredAt ? new Date(r.deliveredAt) : undefined,
-        auditLog: r.auditLog.map((a: any) => ({ ...a, timestamp: new Date(a.timestamp) })),
-      }));
-      parsed.invoices = parsed.invoices.map((inv: Invoice) => ({
-        ...inv,
-        generatedAt: new Date(inv.generatedAt),
-      }));
-      return parsed;
-    }
-  } catch (e) {
-    console.warn('Failed to load from localStorage:', e);
-  }
-  return null;
-}
-
-function saveToStorage(state: AppState): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {
-    console.warn('Failed to save to localStorage:', e);
   }
 }
 
@@ -105,22 +91,16 @@ type AppAction =
   | { type: 'UPDATE_DRIVERS'; payload: DriverInfo[] }
   | { type: 'LOGOUT' };
 
-const initialState: AppState = (() => {
-  const stored = loadFromStorage();
-  if (stored) {
-    return { ...stored, currentUser: null, selectedRequestId: null, isLoading: false, error: null };
-  }
-  return {
-    currentUser: null,
-    requests: [],
-    invoices: [],
-    drivers: [],
-    stock: [],
-    selectedRequestId: null,
-    isLoading: false,
-    error: null,
-  };
-})();
+const initialState: AppState = {
+  currentUser: null,
+  requests: [],
+  invoices: [],
+  drivers: [],
+  stock: [],
+  selectedRequestId: null,
+  isLoading: false,
+  error: null,
+};
 
 const createAuditLog = (user: string, role: UserRole, action: string, details: string) => ({
   id: Math.random().toString(36).substr(2, 9),
@@ -647,11 +627,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
     loadData();
   }, []);
-
-  // Save to localStorage as backup
-  useEffect(() => {
-    saveToStorage(state);
-  }, [state]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
