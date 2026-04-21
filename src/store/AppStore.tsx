@@ -5,22 +5,22 @@ import { getDrivers } from '@/lib/db/drivers';
 import { getStock } from '@/lib/db/stock';
 import { getInvoices } from '@/lib/db/invoices';
 
-function restoreDates<T extends Record<string, any>>(data: T[]): T[] {
+function restoreDates<T extends { date?: string | Date; slaDeadline?: string | Date; clearedAt?: string | Date; invoiceGeneratedAt?: string | Date; stockBookedAt?: string | Date; driverAssignedAt?: string | Date; pickedUpAt?: string | Date; deliveredAt?: string | Date; generatedAt?: string | Date; releasedAt?: string | Date; paidAt?: string | Date; auditLog?: { timestamp: string | Date }[] }>(data: T[]): T[] {
   return data.map((item) => {
-    const restored = { ...item };
-    if (restored.date) restored.date = new Date(restored.date);
-    if (restored.slaDeadline) restored.slaDeadline = new Date(restored.slaDeadline);
-    if (restored.clearedAt) restored.clearedAt = new Date(restored.clearedAt);
-    if (restored.invoiceGeneratedAt) restored.invoiceGeneratedAt = new Date(restored.invoiceGeneratedAt);
-    if (restored.stockBookedAt) restored.stockBookedAt = new Date(restored.stockBookedAt);
-    if (restored.driverAssignedAt) restored.driverAssignedAt = new Date(restored.driverAssignedAt);
-    if (restored.pickedUpAt) restored.pickedUpAt = new Date(restored.pickedUpAt);
-    if (restored.deliveredAt) restored.deliveredAt = new Date(restored.deliveredAt);
-    if (restored.generatedAt) restored.generatedAt = new Date(restored.generatedAt);
-    if (restored.releasedAt) restored.releasedAt = new Date(restored.releasedAt);
-    if (restored.paidAt) restored.paidAt = new Date(restored.paidAt);
-    if (restored.auditLog?.length) {
-      restored.auditLog = restored.auditLog.map((a: any) => ({ ...a, timestamp: new Date(a.timestamp) }));
+    const restored = { ...item } as T;
+    if ('date' in restored && restored.date) restored.date = new Date(restored.date as string);
+    if ('slaDeadline' in restored && restored.slaDeadline) restored.slaDeadline = new Date(restored.slaDeadline as string);
+    if ('clearedAt' in restored && restored.clearedAt) restored.clearedAt = new Date(restored.clearedAt as string);
+    if ('invoiceGeneratedAt' in restored && restored.invoiceGeneratedAt) restored.invoiceGeneratedAt = new Date(restored.invoiceGeneratedAt as string);
+    if ('stockBookedAt' in restored && restored.stockBookedAt) restored.stockBookedAt = new Date(restored.stockBookedAt as string);
+    if ('driverAssignedAt' in restored && restored.driverAssignedAt) restored.driverAssignedAt = new Date(restored.driverAssignedAt as string);
+    if ('pickedUpAt' in restored && restored.pickedUpAt) restored.pickedUpAt = new Date(restored.pickedUpAt as string);
+    if ('deliveredAt' in restored && restored.deliveredAt) restored.deliveredAt = new Date(restored.deliveredAt as string);
+    if ('generatedAt' in restored && restored.generatedAt) restored.generatedAt = new Date(restored.generatedAt as string);
+    if ('releasedAt' in restored && restored.releasedAt) restored.releasedAt = new Date(restored.releasedAt as string);
+    if ('paidAt' in restored && restored.paidAt) restored.paidAt = new Date(restored.paidAt as string);
+    if ('auditLog' in restored && restored.auditLog?.length) {
+      restored.auditLog = restored.auditLog.map((a) => ({ ...a, timestamp: new Date(a.timestamp as string) }));
     }
     return restored;
   });
