@@ -385,10 +385,32 @@ CREATE TRIGGER trg_request_status_audit
 ALTER TABLE users      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sessions   ENABLE ROW LEVEL SECURITY;
 ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stations   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE receivers  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE fertilizers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stock      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transport_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE request_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoices    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE drivers    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assigned_drivers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE driver_bids ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "service_account_access"          ON users      FOR ALL USING (true);
 CREATE POLICY "service_account_access_sessions" ON sessions   FOR ALL USING (true);
 CREATE POLICY "service_account_access_audit"    ON audit_logs FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON stations   FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON receivers  FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON fertilizers FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON stock      FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON transport_requests FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON request_items FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON invoices   FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON invoice_items FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON drivers   FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON assigned_drivers FOR ALL USING (true);
+CREATE POLICY "service_account_access"          ON driver_bids FOR ALL USING (true);
 
 
 -- ============================================================
