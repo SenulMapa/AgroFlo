@@ -24,10 +24,17 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
   const station = row.station as Record<string, string> | undefined;
   const requestItems = (row.request_items as Record<string, unknown>[] | undefined) || [];
   
+  // Parse dates preserving local timezone
+  const parseLocalDate = (dateStr: unknown): Date => {
+    if (!dateStr) return new Date();
+    const d = new Date(dateStr as string);
+    return new Date(d.getTime() + d.getTimezoneOffset() * 60000);
+  };
+  
   return {
     id: String(row.request_code || row.id),
-    date: new Date(String(row.created_at)),
-    orderCreatedDate: row.order_created_date ? new Date(String(row.order_created_date)) : undefined,
+    date: parseLocalDate(row.created_at),
+    orderCreatedDate: row.order_created_date ? parseLocalDate(row.order_created_date) : undefined,
     origin: String(row.origin || 'Station Portal'),
     status: String(row.status) as TransportRequest['status'],
     priority: String(row.priority || 'medium') as TransportRequest['priority'],
@@ -56,7 +63,7 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
       tax: Number(item.tax || 0),
       total: Number(item.total || 0),
     })),
-    slaDeadline: row.sla_deadline ? new Date(String(row.sla_deadline)) : new Date(),
+    slaDeadline: row.sla_deadline ? parseLocalDate(row.sla_deadline) : new Date(),
     createdByUser: row.created_by_user_id ? String(row.created_by_user_id) : undefined,
     auditLog: [],
     route: row.route_from && row.route_to ? {
@@ -129,6 +136,10 @@ export async function createRequest(
   }
   const requestCode = `REQ-${String(nextNum).padStart(5, '0')}`;
   
+  // Use local time (not UTC) for order_created_date
+  const now = new Date();
+  const slaDeadline = new Date(now.getTime() + 72 * 60 * 60 * 1000);
+  
   const { data: request, error: reqError } = await supabase
     .from('transport_requests')
     .insert({ 
@@ -139,8 +150,8 @@ export async function createRequest(
       priority, 
       status: 'new', 
       created_by_user_id: userId,
-      order_created_date: new Date().toISOString(),
-      sla_deadline: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+      order_created_date: now.toISOString(),
+      sla_deadline: slaDeadline.toISOString()
     })
     .select()
     .single();
