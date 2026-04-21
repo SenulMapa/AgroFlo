@@ -82,7 +82,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
       payload: {
         requestId: selectedRequest.id,
         newStatus: 'pending_admin_manager',
-        user: state.currentUser?.name || 'Admin Staff',
+        user: state.currentUser?.id || '',
         role: 'admin_staff',
       },
     });
@@ -136,7 +136,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
         }],
         priority,
         orderCreatedDate,
-        user: state.currentUser?.name || 'Admin Staff',
+        user: state.currentUser?.id || '',
       },
     });
 
@@ -200,7 +200,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
         station,
         items,
         priority: editPriority,
-        user: state.currentUser?.name || 'Admin Staff',
+        user: state.currentUser?.id || '',
       },
     });
 
