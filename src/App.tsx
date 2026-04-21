@@ -5,7 +5,6 @@ import { AdminStaffDashboard } from '@/components/dashboards/AdminStaffDashboard
 import { AdminManagerDashboard } from '@/components/dashboards/AdminManagerDashboard';
 import { FinanceDashboard } from '@/components/dashboards/FinanceDashboard';
 import { WarehouseDashboard } from '@/components/dashboards/WarehouseDashboard';
-import { IMSDashboard } from '@/components/dashboards/IMSDashboard';
 import { ReceiverPortal } from '@/components/dashboards/ReceiverPortal';
 
 import type { UserRole } from '@/types';
@@ -35,8 +34,6 @@ function AppContent() {
       return <FinanceDashboard onLogout={handleLogout} />;
     case 'warehouse':
       return <WarehouseDashboard onLogout={handleLogout} />;
-    case 'inventory_manager':
-      return <IMSDashboard onLogout={handleLogout} />;
     case 'receiver':
       return <ReceiverPortal onLogout={handleLogout} />;
     default:
