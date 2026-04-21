@@ -4,6 +4,7 @@ import { getRequests, createRequest } from '@/lib/db/requests';
 import { getDrivers } from '@/lib/db/drivers';
 import { getStock, bookStock } from '@/lib/db/stock';
 import { getInvoices } from '@/lib/db/invoices';
+import { getStations } from '@/lib/db/stations';
 
 function restoreDates<T extends { date?: string | Date; slaDeadline?: string | Date; clearedAt?: string | Date; invoiceGeneratedAt?: string | Date; stockBookedAt?: string | Date; driverAssignedAt?: string | Date; pickedUpAt?: string | Date; deliveredAt?: string | Date; generatedAt?: string | Date; releasedAt?: string | Date; paidAt?: string | Date; auditLog?: { timestamp: string | Date }[] }>(data: T[]): T[] {
   return data.map((item) => {
@@ -29,13 +30,14 @@ function restoreDates<T extends { date?: string | Date; slaDeadline?: string | D
 async function loadFromDB(): Promise<Partial<AppState>> {
   try {
     console.log('Loading data from Supabase...');
-    const [requests, drivers, stock, invoices] = await Promise.all([
+    const [requests, drivers, stock, invoices, stations] = await Promise.all([
       getRequests(),
       getDrivers(true),
       getStock(),
       getInvoices(),
+      getStations(),
     ]);
-    console.log('Supabase data loaded:', { requests: requests.length, drivers: drivers.length, stock: stock.length, invoices: invoices.length });
+    console.log('Supabase data loaded:', { requests: requests.length, drivers: drivers.length, stock: stock.length, invoices: invoices.length, stations: stations.length });
     if (requests.length === 0 && drivers.length === 0 && stock.length === 0) {
       console.warn('No data from Supabase - all tables empty!');
     }
@@ -43,6 +45,7 @@ async function loadFromDB(): Promise<Partial<AppState>> {
       requests: restoreDates(requests),
       drivers,
       stock,
+      stations,
       invoices: restoreDates(invoices),
     } as Partial<AppState>;
   } catch (e) {
@@ -57,6 +60,7 @@ interface AppState {
   invoices: Invoice[];
   drivers: DriverInfo[];
   stock: StockItem[];
+  stations: StationInfo[];
   selectedRequestId: string | null;
   isLoading: boolean;
   error: string | null;
@@ -89,6 +93,7 @@ type AppAction =
   | { type: 'ADD_DRIVER_BID'; payload: { requestId: string; bid: DriverBid } }
   | { type: 'UPDATE_STOCK'; payload: StockItem[] }
   | { type: 'UPDATE_DRIVERS'; payload: DriverInfo[] }
+  | { type: 'SET_STATIONS'; payload: StationInfo[] }
   | { type: 'LOGOUT' };
 
 const initialState: AppState = {
@@ -97,6 +102,7 @@ const initialState: AppState = {
   invoices: [],
   drivers: [],
   stock: [],
+  stations: [],
   selectedRequestId: null,
   isLoading: false,
   error: null,
@@ -167,6 +173,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'UPDATE_DRIVERS':
       return { ...state, drivers: action.payload };
+
+    case 'SET_STATIONS':
+      return { ...state, stations: action.payload };
 
     case 'ROUTE_REQUEST': {
       const { requestId, newStatus, user, role } = action.payload;
@@ -635,6 +644,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (dbData.invoices?.length) {
           dispatch({ type: 'SET_INVOICES', payload: dbData.invoices });
         }
+        if (dbData.stations?.length) {
+          dispatch({ type: 'SET_STATIONS', payload: dbData.stations });
+        }
       } catch (e) {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load data from server' });
       } finally {
@@ -688,4 +700,9 @@ export function useInvoices() {
 export function useStock() {
   const { state } = useAppStore();
   return state.stock;
+}
+
+export function useStations() {
+  const { state } = useAppStore();
+  return state.stations;
 }

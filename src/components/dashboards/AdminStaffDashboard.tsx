@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useAppStore, useRequests, useSelectedRequest } from '@/store/AppStore';
+import { useAppStore, useRequests, useSelectedRequest, useStations } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { PriorityBadge } from '../shared/PriorityBadge';
@@ -20,6 +20,7 @@ interface AdminStaffDashboardProps {
 export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
   const { state, dispatch } = useAppStore();
   const requests = useRequests();
+  const stations = useStations();
   const selectedRequest = useSelectedRequest();
   const [searchQuery, setSearchQuery] = useState('');
   const [districtFilter, setDistrictFilter] = useState('all');
@@ -108,17 +109,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const stations = [
-      { id: 'STN-1001', name: 'Colombo Central Station', district: 'Colombo', location: 'Colombo', contactPerson: 'Station Manager 1', phone: '+94 11 2000123' },
-      { id: 'STN-1002', name: 'Kandy District Office', district: 'Kandy', location: 'Kandy', contactPerson: 'Station Manager 2', phone: '+94 81 2000124' },
-      { id: 'STN-1003', name: 'Galle Regional Hub', district: 'Galle', location: 'Galle', contactPerson: 'Station Manager 3', phone: '+94 91 2000125' },
-      { id: 'STN-1004', name: 'Jaffna Branch', district: 'Jaffna', location: 'Jaffna', contactPerson: 'Station Manager 4', phone: '+94 21 2000126' },
-      { id: 'STN-1005', name: 'Matale Supply Point', district: 'Matale', location: 'Matale', contactPerson: 'Station Manager 5', phone: '+94 66 2000127' },
-      { id: 'STN-1006', name: 'Kalutara Distribution Center', district: 'Kalutara', location: 'Kalutara', contactPerson: 'Station Manager 6', phone: '+94 34 2000128' },
-      { id: 'STN-1007', name: 'Gampaha Station', district: 'Gampaha', location: 'Gampaha', contactPerson: 'Station Manager 7', phone: '+94 33 2000129' },
-      { id: 'STN-1008', name: 'Kurunegala Depot', district: 'Kurunegala', location: 'Kurunegala', contactPerson: 'Station Manager 8', phone: '+94 37 2000130' },
-    ];
-
+    // stations is now loaded from DB with real UUIDs via useStations() hook
     const station = stations.find(s => s.id === selectedStation) || stations[0];
     const itemTotal = ferData.unitCost * quantity;
     const tax = itemTotal * ferData.taxRate;
@@ -188,16 +179,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     const ferData = fertilizerPrices.find(p => p.type === editFertilizerType);
     if (!ferData) { setIsEditing(false); return; }
 
-    const stations = [
-      { id: 'STN-1001', name: 'Colombo Central Station', district: 'Colombo', location: 'Colombo', contactPerson: 'Station Manager 1', phone: '+94 11 2000123' },
-      { id: 'STN-1002', name: 'Kandy District Office', district: 'Kandy', location: 'Kandy', contactPerson: 'Station Manager 2', phone: '+94 81 2000124' },
-      { id: 'STN-1003', name: 'Galle Regional Hub', district: 'Galle', location: 'Galle', contactPerson: 'Station Manager 3', phone: '+94 91 2000125' },
-      { id: 'STN-1004', name: 'Jaffna Branch', district: 'Jaffna', location: 'Jaffna', contactPerson: 'Station Manager 4', phone: '+94 21 2000126' },
-      { id: 'STN-1005', name: 'Matale Supply Point', district: 'Matale', location: 'Matale', contactPerson: 'Station Manager 5', phone: '+94 66 2000127' },
-      { id: 'STN-1006', name: 'Kalutara Distribution Center', district: 'Kalutara', location: 'Kalutara', contactPerson: 'Station Manager 6', phone: '+94 34 2000128' },
-      { id: 'STN-1007', name: 'Gampaha Station', district: 'Gampaha', location: 'Gampaha', contactPerson: 'Station Manager 7', phone: '+94 33 2000129' },
-      { id: 'STN-1008', name: 'Kurunegala Depot', district: 'Kurunegala', location: 'Kurunegala', contactPerson: 'Station Manager 8', phone: '+94 37 2000130' },
-    ];
+    // stations is now loaded from DB with real UUIDs via useStations() hook
     const station = stations.find(s => s.id === editStation) || stations[0];
     const itemTotal = ferData.unitCost * editQuantity;
     const tax = itemTotal * ferData.taxRate;
