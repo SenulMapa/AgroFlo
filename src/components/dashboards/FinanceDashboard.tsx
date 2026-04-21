@@ -328,8 +328,8 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-emerald-100 flex items-center justify-center rounded">
-            <span className="text-lg font-mono font-semibold text-[#1e293b]">LKR {stats.totalValue.toLocaleString()}</span>
+          <div className="w-8 h-8 bg-emerald-100 flex items-center justify-center rounded text-[#15803d]">
+            <span className="font-mono font-semibold">LKR</span>
           </div>
           <div>
             <div className="text-lg font-mono font-semibold text-[#1e293b]">{formatCurrency(stats.totalValue)}</div>
@@ -534,8 +534,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                         disabled={isProcessing}
                         className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
                       >
-                        <span className="text-xs font-medium mr-1">LKR</span>
-                        PAYMENT MADE
+                        LKR PAYMENT MADE
                       </button>
                     )}
                   </div>
