@@ -107,14 +107,16 @@ export async function createRequest(
   slaDeadline: string
 ) {
   const numericId = Math.floor(Math.random() * 1000) + 9000;
-  const requestId = `REQ-${numericId}`;
+  const requestCode = `REQ-${numericId}`;
   const { data: request, error: reqError } = await supabase
     .from('transport_requests')
-    .insert({ request_code: requestId, station_id: stationId, origin: 'Station Portal', destination, priority, status: 'new', created_by_user_id: userId, order_created_date: orderCreatedDate, sla_deadline: slaDeadline })
-    .select().single();
+    .insert({ request_code: requestCode, station_id: stationId, origin: 'Station Portal', destination, priority, status: 'new', created_by_user_id: userId, order_created_date: orderCreatedDate, sla_deadline: slaDeadline })
+    .select()
+    .single();
   if (reqError) return { request: null, error: reqError };
+  if (!request?.id) return { request: null, error: { message: 'Failed to get inserted request ID' } };
   for (const item of items) {
-    await supabase.from('request_items').insert({ request_id: requestId, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, type: item.type });
+    await supabase.from('request_items').insert({ request_id: request.id, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, type: item.type });
   }
   return { request, error: null };
 }
