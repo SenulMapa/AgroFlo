@@ -97,3 +97,37 @@ export async function updateRequestStatus(
 
   return data;
 }
+export async function createRequest(
+  stationId: string,
+  destination: string,
+  priority: string,
+  userId: string,
+  items: Array<{sku: string; quantity: number; unitCost: number; tax: number; total: number; name: string; type: string}>,
+  orderCreatedDate: string,
+  slaDeadline: string
+) {
+  const numericId = Math.floor(Math.random() * 1000) + 9000;
+  const requestId = `REQ-${numericId}`;
+  const { data: request, error: reqError } = await supabase
+    .from('transport_requests')
+    .insert({ id: requestId, station_id: stationId, origin: 'Station Portal', destination, priority, status: 'new', created_by_user_id: userId, order_created_date: orderCreatedDate, sla_deadline: slaDeadline })
+    .select().single();
+  if (reqError) return { request: null, error: reqError };
+  for (const item of items) {
+    await supabase.from('request_items').insert({ request_id: requestId, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, type: item.type });
+  }
+  return { request, error: null };
+}
+
+export async function updateRequest(requestId: string, updates: { station_id?: string; destination?: string; priority?: string; status?: string }) {
+  const { error } = await supabase.from('transport_requests').update(updates).eq('id', requestId);
+  return { error };
+}
+
+export async function updateRequestItems(requestId: string, items: Array<{sku: string; name: string; quantity: number; unitCost: number; tax: number; total: number; type: string}>) {
+  await supabase.from('request_items').delete().eq('request_id', requestId);
+  for (const item of items) {
+    await supabase.from('request_items').insert({ request_id: requestId, sku: item.sku, name: item.name, quantity: item.quantity, unit_cost: item.unitCost, tax: item.tax, total: item.total, type: item.type });
+  }
+  return { error: null };
+}
