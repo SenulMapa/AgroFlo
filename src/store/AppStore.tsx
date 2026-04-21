@@ -199,11 +199,15 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'CREATE_NEW_REQUEST': {
       const { station, items, priority, destination = '', orderCreatedDate, user } = action.payload;
-      
+
+      if (!user) {
+        console.error('CREATE_NEW_REQUEST: user is required');
+        return state;
+      }
+
       const slaDeadline = new Date();
       slaDeadline.setHours(slaDeadline.getHours() + 72);
-      
-      // DB write - persist to Supabase
+
       createRequest(
         station.id,
         destination,

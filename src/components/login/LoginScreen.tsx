@@ -31,11 +31,13 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     const user = await loginUser(employeeId, role);
 
     if (!user) {
+      console.error('Login failed - user not found in DB for', employeeId, role);
       setError('Invalid credentials');
       setIsLoading(false);
       return;
     }
 
+    console.log('User logged in with UUID:', user.id, user.name);
     dispatch({ type: 'SET_USER', payload: user });
     setIsLoading(false);
     onLogin(role);
