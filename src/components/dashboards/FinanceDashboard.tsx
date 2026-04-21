@@ -552,28 +552,32 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                       </span>
                     </div>
                     <div className="p-4">
-                      {invoices.find(inv => inv.id === selectedRequest.invoiceId) && (
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Subtotal</span>
-                            <span className="text-sm font-mono font-medium text-[#1e293b]">
-                              {formatCurrency(invoices.find(inv => inv.id === selectedRequest.invoiceId)!.subtotal)}
-                            </span>
+                      {(() => {
+                        const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId);
+                        if (!invoice) return null;
+                        return (
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Subtotal</span>
+                              <span className="text-sm font-mono font-medium text-[#1e293b]">
+                                {formatCurrency(invoice.subtotal)}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Tax</span>
+                              <span className="text-sm font-mono font-medium text-[#1e293b]">
+                                {formatCurrency(invoice.taxTotal)}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Grand Total</span>
+                              <span className="text-sm font-mono font-bold text-[#15803d]">
+                                {formatCurrency(invoice.grandTotal)}
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Tax</span>
-                            <span className="text-sm font-mono font-medium text-[#1e293b]">
-                              {formatCurrency(invoices.find(inv => inv.id === selectedRequest.invoiceId)!.taxTotal)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Grand Total</span>
-                            <span className="text-sm font-mono font-bold text-[#15803d]">
-                              {formatCurrency(invoices.find(inv => inv.id === selectedRequest.invoiceId)!.grandTotal)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
