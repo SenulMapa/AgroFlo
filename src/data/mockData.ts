@@ -110,14 +110,6 @@ export const generateMockRequests = (): TransportRequest[] => {
       auditLog.push(createAuditLog('Nimal Fernando', 'admin_manager', 'APPROVED', 'Request approved and stock released'));
     }
 
-    if (['invoiced', 'paid', 'released', 'booking_stock', 'prepping', 'driver_assigned', 'order_picked_up', 'delivered'].includes(status)) {
-      auditLog.push(createAuditLog('Dilani Silva', 'finance', 'INVOICE_GENERATED', `Invoice INV-${8800 + i} generated`));
-    }
-
-    if (['paid', 'released', 'booking_stock', 'prepping', 'driver_assigned', 'order_picked_up', 'delivered'].includes(status)) {
-      auditLog.push(createAuditLog('Dilani Silva', 'finance', 'INVOICE_RELEASED', 'Invoice released to warehouse'));
-    }
-
     if (['booking_stock', 'prepping', 'driver_assigned', 'order_picked_up', 'delivered'].includes(status)) {
       auditLog.push(createAuditLog('Ruwan Kumara', 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order'));
     }
