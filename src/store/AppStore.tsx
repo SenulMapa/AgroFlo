@@ -131,13 +131,23 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SELECT_REQUEST':
       return { ...state, selectedRequestId: action.payload };
 
-    case 'SET_REQUEST_DB_ID':
-      return {
-        ...state,
-        requests: state.requests.map(r =>
-          r.id === action.payload.requestCode ? { ...r, dbId: action.payload.dbId } : r
-        ),
-      };
+    case 'SET_REQUEST_DB_ID': {
+        // Find the request: either by request_code from DB or by TEMP id
+        const { requestCode, dbId } = action.payload;
+        return {
+          ...state,
+          requests: state.requests.map(r => {
+            // Match by exact request_code (from DB)
+            if (r.id === requestCode) return { ...r, dbId };
+            // Match TEMP request that needs to be replaced with real request_code
+            if (r.id.startsWith('TEMP-')) {
+              // Replace the TEMP id with the actual request_code from DB
+              return { ...r, id: requestCode, dbId };
+            }
+            return r;
+          }),
+        };
+      }
 
     case 'UPDATE_REQUEST':
       return {
@@ -216,16 +226,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
         return state;
       }
 
-      // Optimistic UI update with temp ID
-      const existingCodes = state.requests.map(r => {
-        const match = r.id.match(/REQ-(\d+)/);
-        return match ? parseInt(match[1], 10) : 0;
-      });
-      const nextCode = Math.max(...existingCodes, 0) + 1;
       const slaDeadline = new Date(Date.now() + 72 * 60 * 60 * 1000);
 
+      // Show temp ID while DB processes - request_code comes from DB
+      const tempId = `TEMP-${Date.now()}`;
+
       const optimisticRequest: TransportRequest = {
-        id: `REQ-${String(nextCode).padStart(5, '0')}`,
+        id: tempId,
         date: new Date(),
         orderCreatedDate,
         origin: 'Station Portal',
@@ -243,12 +250,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
             user,
             role: 'admin_staff',
             action: 'REQUEST_CREATED',
-            details: `Request REQ-${String(nextCode).padStart(5, '0')} created for ${station.name}`,
+            details: `Creating request for ${station.name}...`,
           },
         ],
       };
 
-      // DB write - persist to Supabase
+      // DB write - uses request_code from DB, not frontend
       createRequest(
         station.id,
         destination,
@@ -257,6 +264,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         items.map(i => ({ sku: i.sku, quantity: i.quantity, unitCost: i.unitCost, tax: i.tax, total: i.total, name: i.name, type: i.type }))
       ).then(res => {
         if (res?.request && pendingRequestCallback) {
+          // Use the request_code from DB (e.g., REQ-10000)
           pendingRequestCallback(res.request.request_code, res.request.id);
         }
       }).catch(err => console.error('Failed to create request in DB:', err));
