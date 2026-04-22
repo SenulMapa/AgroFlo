@@ -564,13 +564,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
-      // Update stock in database
+      // Update stock in database - book the stock (available -> booked)
       bookStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err =>
         console.error('Failed to update stock in DB:', err)
       );
 
+      // Keep status as booking_stock (not prepping) - user still needs to click "PREPARE STOCK"
       if (request.dbId) {
-        updateRequestStatusWithAudit(request.dbId, 'prepping', user, 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order and ready for prepping');
+        updateRequestStatusWithAudit(request.dbId, 'booking_stock', user, 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order');
       }
 
       return {
@@ -579,7 +580,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           if (r.id === requestId) {
             return {
               ...r,
-              status: 'prepping',
+              status: 'booking_stock',
               stockBookedAt: new Date(),
               auditLog: [
                 ...r.auditLog,

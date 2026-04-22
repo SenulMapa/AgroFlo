@@ -185,37 +185,70 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
         );
       case 'booking_stock':
         return (
-          <button
-            onClick={async () => {
-              if (!selectedRequest) return;
-              setIsProcessing(true);
-              dispatch({
-                type: 'BOOK_STOCK',
-                payload: {
-                  requestId: selectedRequest.id,
-                  user: state.currentUser?.name || 'Warehouse',
-                },
-              });
-              toast.success('Stock booked', {
-                description: `Stock reserved for ${selectedRequest.id}`,
-              });
-              setIsProcessing(false);
-            }}
-            disabled={isProcessing}
-            className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                BOOKING...
-              </>
-            ) : (
-              <>
-                <Box className="w-4 h-4 mr-1" />
-                BOOK STOCK
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (!selectedRequest) return;
+                setIsProcessing(true);
+                dispatch({
+                  type: 'BOOK_STOCK',
+                  payload: {
+                    requestId: selectedRequest.id,
+                    user: state.currentUser?.name || 'Warehouse',
+                  },
+                });
+                toast.success('Stock booked', {
+                  description: `Stock reserved for ${selectedRequest.id}`,
+                });
+                setIsProcessing(false);
+              }}
+              disabled={isProcessing}
+              className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  BOOKING...
+                </>
+              ) : (
+                <>
+                  <Box className="w-4 h-4 mr-1" />
+                  BOOK STOCK
+                </>
+              )}
+            </button>
+            <button
+              onClick={async () => {
+                if (!selectedRequest) return;
+                setIsProcessing(true);
+                dispatch({
+                  type: 'START_PREPPING',
+                  payload: {
+                    requestId: selectedRequest.id,
+                    user: state.currentUser?.name || 'Warehouse',
+                  },
+                });
+                toast.success('Preparing stock', {
+                  description: `Stock moved to prepping for ${selectedRequest.id}`,
+                });
+                setIsProcessing(false);
+              }}
+              disabled={isProcessing}
+              className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  PREPARING...
+                </>
+              ) : (
+                <>
+                  <ClipboardCheck className="w-4 h-4 mr-1" />
+                  PREPARE STOCK
+                </>
+              )}
+            </button>
+          </div>
         );
       case 'prepping': {
         const hasDriver = !!selectedRequest.assignedDriver;
