@@ -233,6 +233,26 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
           </div>
         );
       }
+      case 'driver_assigned':
+        return (
+          <button
+            onClick={handleMarkPickedUp}
+            disabled={isProcessing}
+            className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                PICKING UP...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-1" />
+                ORDER PICKED UP
+              </>
+            )}
+          </button>
+        );
       case 'order_picked_up':
         return (
           <button
@@ -290,7 +310,9 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
       case 'cleared': return <Box className="w-4 h-4 text-blue-600" />;
       case 'booking_stock': return <Package className="w-4 h-4 text-orange-600" />;
       case 'prepping': return <ClipboardCheck className="w-4 h-4 text-indigo-600" />;
-      case 'shipped': return <CheckCircle className="w-4 h-4 text-gray-600" />;
+      case 'driver_assigned': return <Truck className="w-4 h-4 text-purple-600" />;
+      case 'order_picked_up': return <CheckCircle className="w-4 h-4 text-teal-600" />;
+      case 'delivered': return <CheckCircle className="w-4 h-4 text-green-600" />;
       default: return <Box className="w-4 h-4" />;
     }
   };
