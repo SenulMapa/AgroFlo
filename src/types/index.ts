@@ -78,6 +78,7 @@ export interface DriverInfo {
 
 export interface TransportRequest {
   id: string;
+  dbId?: string; // Actual Supabase UUID for DB operations
   date: Date;
   orderCreatedDate?: Date;
   origin: string;

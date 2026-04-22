@@ -33,6 +33,7 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
   
   return {
     id: String(row.request_code || row.id),
+    dbId: String(row.id || ''),
     date: parseLocalDate(row.created_at),
     orderCreatedDate: row.order_created_date ? parseLocalDate(row.order_created_date) : undefined,
     origin: String(row.origin || 'Station Portal'),
@@ -166,6 +167,29 @@ export async function createRequest(
 export async function updateRequest(requestId: string, updates: { station_id?: string; destination?: string; priority?: string; status?: string }) {
   const { error } = await supabase.from('transport_requests').update(updates).eq('id', requestId);
   return { error };
+}
+
+export async function updateRequestStatusWithAudit(
+  requestDbId: string,
+  status: string,
+  userName: string,
+  userRole: string,
+  action: string,
+  details: string
+) {
+  const { error } = await supabase.from('transport_requests').update({ status }).eq('id', requestDbId);
+  if (error) {
+    console.error('Failed to update request status:', error);
+    return;
+  }
+  await supabase.from('audit_logs').insert({
+    entity_type: 'transport_request',
+    entity_id: requestDbId,
+    user_name: userName,
+    user_role: userRole,
+    action,
+    details,
+  });
 }
 
 export async function updateRequestItems(requestId: string, items: Array<{sku: string; name: string; quantity: number; unitCost: number; tax: number; total: number; type: string}>) {

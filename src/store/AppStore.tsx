@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { TransportRequest, User, UserRole, Invoice, DriverInfo, DriverBid, StockItem, FertilizerItem, StationInfo, Priority } from '@/types';
-import { getRequests, createRequest } from '@/lib/db/requests';
+import { getRequests, createRequest, updateRequestStatusWithAudit } from '@/lib/db/requests';
 import { getDrivers } from '@/lib/db/drivers';
 import { getStock, bookStock } from '@/lib/db/stock';
 import { getInvoices } from '@/lib/db/invoices';
@@ -70,6 +70,7 @@ type AppAction =
   | { type: 'SET_USER'; payload: User | null }
   | { type: 'SET_REQUESTS'; payload: TransportRequest[] }
   | { type: 'SELECT_REQUEST'; payload: string | null }
+  | { type: 'SET_REQUEST_DB_ID'; payload: { requestCode: string; dbId: string } }
   | { type: 'UPDATE_REQUEST'; payload: TransportRequest }
   | { type: 'ADD_REQUEST'; payload: TransportRequest }
   | { type: 'CREATE_NEW_REQUEST'; payload: { station: StationInfo; items: FertilizerItem[]; priority: Priority; destination?: string; orderCreatedDate: Date; user: string } }
@@ -127,6 +128,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'SELECT_REQUEST':
       return { ...state, selectedRequestId: action.payload };
+
+    case 'SET_REQUEST_DB_ID':
+      return {
+        ...state,
+        requests: state.requests.map(r =>
+          r.id === action.payload.requestCode ? { ...r, dbId: action.payload.dbId } : r
+        ),
+      };
 
     case 'UPDATE_REQUEST':
       return {
@@ -246,7 +255,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
         items.map(i => ({ sku: i.sku, quantity: i.quantity, unitCost: i.unitCost, tax: i.tax, total: i.total, name: i.name, type: i.type }))
       ).then(res => {
         if (res?.request) {
-          console.log('Request created:', res.request.request_code);
+          console.log('Request created with DB ID:', res.request.id, 'code:', res.request.request_code);
         }
       }).catch(err => console.error('Failed to create request in DB:', err));
 
@@ -261,7 +270,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
-      // DB write - call bookStock RPC
       bookStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err => console.error('Failed to book stock:', err));
 
       const updatedStock = state.stock.map(stockItem => {
@@ -276,6 +284,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
         }
         return stockItem;
       });
+
+      if (request.dbId) {
+        updateRequestStatusWithAudit(request.dbId, 'pending_finance', user, 'admin_manager', 'APPROVED', 'Request approved and stock released');
+      }
 
       return {
         ...state,
@@ -299,6 +311,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'DECLINE_REQUEST': {
       const { requestId, reason, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'declined', user, 'admin_manager', 'DECLINED', `Declined: ${reason}`);
+      }
       return {
         ...state,
         requests: state.requests.map(r => {
@@ -327,6 +343,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const subtotal = request.items.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0);
       const taxTotal = request.items.reduce((sum, item) => sum + item.tax, 0);
       const grandTotal = subtotal + taxTotal;
+
+      if (request.dbId) {
+        updateRequestStatusWithAudit(request.dbId, 'invoiced', user, 'finance', 'INVOICE_GENERATED', `Invoice ${invoiceId} generated`);
+      }
 
       const newInvoice: Invoice = {
         id: invoiceId,
@@ -362,6 +382,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'RELEASE_INVOICE': {
       const { requestId, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'released', user, 'finance', 'INVOICE_RELEASED', 'Invoice released to warehouse');
+      }
       return {
         ...state,
         invoices: state.invoices.map(inv => {
@@ -393,6 +417,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'DECLINE_INVOICE': {
       const { requestId, reason, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'invoice_declined', user, 'finance', 'INVOICE_DECLINED', `Invoice declined: ${reason}`);
+      }
       return {
         ...state,
         invoices: state.invoices.map(inv => {
@@ -424,6 +452,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'MARK_INVOICE_PAID': {
       const { requestId, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'paid', user, 'finance', 'PAYMENT_CONFIRMED', 'Payment confirmed');
+      }
       return {
         ...state,
         invoices: state.invoices.map(inv => {
@@ -454,6 +486,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'CLEAR_FOR_WAREHOUSE': {
       const { requestId, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'cleared', user, 'finance', 'CLEARED', 'Cleared for warehouse processing');
+      }
       return {
         ...state,
         requests: state.requests.map(r => {
@@ -477,6 +513,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const { requestId, user } = action.payload;
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
+
+      if (request.dbId) {
+        updateRequestStatusWithAudit(request.dbId, 'booking_stock', user, 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order');
+      }
 
       return {
         ...state,
@@ -502,7 +542,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
-      // Update stock: move from booked to prepping
+      if (request.dbId) {
+        updateRequestStatusWithAudit(request.dbId, 'prepping', user, 'warehouse', 'PREPPING', 'Order being prepared for shipment');
+      }
+
       const updatedStock = state.stock.map(stockItem => {
         const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
         if (requestItem) {
@@ -540,6 +583,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
+      if (request.dbId) {
+        updateRequestStatusWithAudit(request.dbId, 'order_picked_up', user, 'warehouse', 'ORDER_PICKED_UP', 'Driver picked up the order');
+      }
+
       const updatedStock = state.stock.map(stockItem => {
         const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
         if (requestItem) {
@@ -575,6 +622,10 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'ASSIGN_DRIVER': {
       const { requestId, driver, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'driver_assigned', user, 'warehouse', 'DRIVER_ASSIGNED', `Driver ${driver.name} assigned`);
+      }
       return {
         ...state,
         requests: state.requests.map(r => {
