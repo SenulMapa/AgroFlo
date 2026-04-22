@@ -599,7 +599,8 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                     </div>
                     <div className="p-4">
                       {(() => {
-                        const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId);
+                        // Match by invoice code (id or invoice_code)
+                        const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId || inv.id === selectedRequest.invoiceId);
                         if (!invoice) return null;
                         return (
                           <div className="grid grid-cols-3 gap-4">

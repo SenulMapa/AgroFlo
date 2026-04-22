@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useAppStore, useRequests, useSelectedRequest, useDrivers } from '@/store/AppStore';
+import { useAppStore, useRequests, useSelectedRequest, useDrivers, useStock } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
@@ -25,7 +25,8 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const [showDriverModal, setShowDriverModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'orders' | 'drivers'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'drivers' | 'ims'>('orders');
+  const stock = useStock();
 
   const clearedRequests = useMemo(() => {
     return requests
@@ -424,8 +425,12 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
             DRIVERS
           </button>
           <button
-            onClick={() => window.open(window.location.origin + '/ims', '_blank')}
-            className="inline-flex items-center gap-2 h-8 px-4 text-xs font-medium bg-white text-[#1e293b] border border-[#e2e8f0] hover:bg-gray-50 transition-colors rounded"
+            onClick={() => setActiveTab('ims')}
+            className={`inline-flex items-center gap-2 h-8 px-4 text-xs font-medium border transition-colors rounded ${
+              activeTab === 'ims'
+                ? 'bg-[#15803d] text-white border-[#15803d] hover:bg-green-800'
+                : 'bg-white text-[#1e293b] border-[#e2e8f0] hover:bg-gray-50'
+            }`}
           >
             <Warehouse className="w-4 h-4" />
             STOCK (IMS)
@@ -434,7 +439,69 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {activeTab === 'drivers' ? (
+        {activeTab === 'ims' ? (
+          /* IMS - Stock View */
+          <div className="flex-1 p-4 overflow-auto">
+            <div className="bg-white border border-[#e2e8f0] rounded">
+              <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center justify-between rounded-t">
+                <div className="flex items-center gap-2">
+                  <Warehouse className="w-4 h-4 text-[#15803d]" />
+                  <span className="text-sm font-semibold uppercase tracking-wider text-[#64748b]">
+                    Inventory Management System
+                  </span>
+                </div>
+                <span className="text-xs text-[#64748b]">{stock.length} products</span>
+              </div>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">SKU</th>
+                    <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Type</th>
+                    <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Product</th>
+                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Available (MT)</th>
+                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Booked (MT)</th>
+                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Prepping (MT)</th>
+                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Total (MT)</th>
+                    <th className="text-center font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stock.map((item, idx) => {
+                    const stockLevel = item.total > 0 ? item.available / item.total : 0;
+                    const statusColor = stockLevel > 0.3 ? 'bg-green-100 text-green-800' : stockLevel > 0.1 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800';
+                    const statusText = stockLevel > 0.3 ? 'In Stock' : stockLevel > 0.1 ? 'Low Stock' : 'Critical';
+                    return (
+                      <tr key={idx} className="border-b border-[#e2e8f0]">
+                        <td className="font-mono text-xs py-2 px-3">{item.sku}</td>
+                        <td className="text-xs py-2 px-3">{item.type}</td>
+                        <td className="text-xs py-2 px-3">{item.name}</td>
+                        <td className="text-right font-mono text-xs py-2 px-3 text-green-700 font-medium">{item.available.toFixed(1)}</td>
+                        <td className="text-right font-mono text-xs py-2 px-3 text-orange-700">{item.booked.toFixed(1)}</td>
+                        <td className="text-right font-mono text-xs py-2 px-3 text-indigo-700">{item.prepping.toFixed(1)}</td>
+                        <td className="text-right font-mono text-xs font-medium py-2 px-3">{item.total.toFixed(1)}</td>
+                        <td className="text-center py-2 px-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${statusColor}`}>
+                            {statusText}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot className="bg-[#f1f5f9]">
+                  <tr>
+                    <td colSpan={3} className="text-right text-xs font-semibold py-2 px-3">TOTALS:</td>
+                    <td className="text-right font-mono text-sm font-bold text-green-700 py-2 px-3">{stock.reduce((s, i) => s + i.available, 0).toFixed(1)}</td>
+                    <td className="text-right font-mono text-sm py-2 px-3 text-orange-700">{stock.reduce((s, i) => s + i.booked, 0).toFixed(1)}</td>
+                    <td className="text-right font-mono text-sm py-2 px-3 text-indigo-700">{stock.reduce((s, i) => s + i.prepping, 0).toFixed(1)}</td>
+                    <td className="text-right font-mono text-sm font-bold py-2 px-3">{stock.reduce((s, i) => s + i.total, 0).toFixed(1)}</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        ) : activeTab === 'drivers' ? (
           /* Driver Pool View */
           <div className="flex-1 p-4 overflow-auto">
             <div className="bg-white border border-[#e2e8f0] rounded">
