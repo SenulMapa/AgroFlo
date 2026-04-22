@@ -173,14 +173,8 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
     const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId);
     if (!invoice) return;
     
-    // Calculate payment status text BEFORE the template literal
-    const getPaymentStatusText = (status: string) => {
-      if (status === 'paid') return 'PAID';
-      if (status === 'approved') return 'APPROVED - AWAITING PAYMENT';
-      if (status === 'released') return 'RELEASED - AWAITING PAYMENT';
-      return 'PENDING';
-    };
-    const paymentStatusText = getPaymentStatusText(invoice.status);
+    // Use paymentStatus from DB (which comes from invoices.payment_status column)
+    const paymentStatusText = invoice.paymentStatus === 'paid' ? 'PAID' : 'PENDING';
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;

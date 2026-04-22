@@ -5,6 +5,21 @@ import { getDrivers, assignDriver, submitDriverBid } from '@/lib/db/drivers';
 import { getStock, bookStock, releaseStock, moveToTotal } from '@/lib/db/stock';
 import { getInvoices, generateInvoice, markInvoicePaid } from '@/lib/db/invoices';
 import { getStations } from '@/lib/db/stations';
+import { supabase } from '@/lib/supabase';
+
+const logDebugAction = async (action: string, entityType: string, entityId: string, sqlQuery: string, details?: Record<string, unknown>) => {
+  try {
+    await supabase.from('debug_logs').insert({
+      action,
+      entity_type: entityType,
+      entity_id: entityId,
+      sql_query: sqlQuery,
+      details: details || {},
+    });
+  } catch (e) {
+    console.error('Failed to log debug action:', e);
+  }
+};
 
 function restoreDates<T extends { date?: string | Date; slaDeadline?: string | Date; clearedAt?: string | Date; invoiceGeneratedAt?: string | Date; stockBookedAt?: string | Date; driverAssignedAt?: string | Date; pickedUpAt?: string | Date; deliveredAt?: string | Date; generatedAt?: string | Date; releasedAt?: string | Date; paidAt?: string | Date; auditLog?: { timestamp: string | Date }[] }>(data: T[]): T[] {
   return data.map((item) => {
@@ -429,6 +444,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const { requestId, user } = action.payload;
       const req = state.requests.find(r => r.id === requestId);
       if (req?.dbId) {
+        const invoice = state.invoices.find(inv => inv.requestId === requestId);
+        if (invoice?.id) {
+          const invoiceId = invoice.id;
+          logDebugAction(
+            'RELEASE_INVOICE',
+            'invoice',
+            invoiceId,
+            `UPDATE invoices SET status='released', released_at=NOW() WHERE id='${invoiceId}';
+UPDATE transport_requests SET status='cleared' WHERE invoice_id='${invoiceId}';`,
+            { requestId, requestCode: requestId }
+          );
+        }
         updateRequestStatusWithAudit(req.dbId, 'cleared', user, 'finance', 'INVOICE_RELEASED', 'Invoice released and cleared for warehouse dispatch');
       }
       return {
@@ -501,7 +528,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       if (req?.dbId) {
         const invoice = state.invoices.find(inv => inv.requestId === requestId);
         if (invoice?.id) {
-          markInvoicePaid(invoice.id, invoice.paymentMethod || 'cash').catch(err =>
+          const invoiceId = invoice.id;
+          const paymentMethod = invoice.paymentMethod || 'cash';
+          // Debug log BEFORE the SQL call
+          logDebugAction(
+            'MARK_INVOICE_PAID',
+            'invoice',
+            invoiceId,
+            `UPDATE invoices SET status='paid', payment_status='paid', payment_method='${paymentMethod}', paid_at= NOW() WHERE id = '${invoiceId}';
+UPDATE transport_requests SET status='paid' WHERE invoice_id = '${invoiceId}';`,
+            { requestId, requestCode: requestId, paymentMethod }
+          );
+          markInvoicePaid(invoiceId, paymentMethod).catch(err =>
             console.error('Failed to mark invoice paid in DB:', err)
           );
         }

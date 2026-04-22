@@ -21,6 +21,7 @@ export async function getInvoices() {
     taxTotal: Number(inv.tax_total),
     grandTotal: Number(inv.grand_total),
     status: inv.status,
+    paymentStatus: inv.payment_status, // Add payment_status from DB
     releasedAt: inv.released_at ? new Date(inv.released_at) : undefined,
     paymentMethod: inv.payment_method as 'cash' | 'credit' | 'account' | undefined,
     paidAt: inv.paid_at ? new Date(inv.paid_at) : undefined,

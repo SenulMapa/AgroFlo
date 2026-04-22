@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { useAppStore, useRequests, useSelectedRequest, useDrivers, useStock } from '@/store/AppStore';
+import { useAppStore, useRequests, useSelectedRequest, useDrivers, useStock, useInvoices } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
@@ -18,6 +18,7 @@ interface WarehouseDashboardProps {
 
 export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const { state, dispatch } = useAppStore();
+  const invoices = useInvoices();
   const requests = useRequests();
   const selectedRequest = useSelectedRequest();
   const drivers = useDrivers();
@@ -30,8 +31,8 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
 
   const clearedRequests = useMemo(() => {
     return requests
-      .filter(r => r.status === 'cleared' || r.status === 'paid')
-      .sort((a, b) => (b.clearedAt?.getTime() || 0) - (a.clearedAt?.getTime() || 0));
+      .filter(r => r.status === 'paid')  // Only show requests with payment confirmed
+      .sort((a, b) => (b.paidAt?.getTime() || 0) - (a.paidAt?.getTime() || 0));
   }, [requests]);
 
   const bookingStockRequests = useMemo(() => {
@@ -709,8 +710,14 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                           </div>
                           <div>
                             <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Payment Status</span>
-                            <span className={`text-sm font-medium ${selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'text-[#15803d]' : 'text-orange-600'}`}>
-                              {selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'cleared' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'Payment Made' : 'Pending'}
+                            <span className={`text-sm font-medium ${(() => {
+                              const inv = invoices.find(i => i.id === selectedRequest.invoiceId || i.id === selectedRequest.invoiceId);
+                              return inv?.paymentStatus === 'paid' ? 'text-[#15803d]' : 'text-orange-600';
+                            })()}`}>
+                              {(() => {
+                                const inv = invoices.find(i => i.id === selectedRequest.invoiceId || i.id === selectedRequest.invoiceId);
+                                return inv?.paymentStatus === 'paid' ? 'PAID' : 'PENDING';
+                              })()}
                             </span>
                           </div>
                         </div>

@@ -100,6 +100,7 @@ export interface TransportRequest {
   invoiceGeneratedAt?: Date;
   clearedAt?: Date;
   releasedAt?: Date;
+  paidAt?: Date;
   warehouseNotes?: string;
   stockBookedAt?: Date;
   driverBids?: DriverBid[];
@@ -124,6 +125,7 @@ export interface Invoice {
   taxTotal: number;
   grandTotal: number;
   status: InvoiceStatus;
+  paymentStatus?: 'pending' | 'paid'; // Add payment_status from DB
   releasedAt?: Date;
   paymentMethod?: 'cash' | 'credit' | 'account';
   paidAt?: Date;
