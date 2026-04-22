@@ -43,7 +43,7 @@ export async function bookStock(items: Array<{sku: string; quantity: number}>) {
   for (const item of items) {
     const { data: fertilizer } = await supabase
       .from('fertilizers')
-      .select('id, unit_weight_kg')
+      .select('id, unit_weight_kg, name')
       .eq('sku', item.sku)
       .single();
 
@@ -59,10 +59,24 @@ export async function bookStock(items: Array<{sku: string; quantity: number}>) {
 
     if (!stockItem) continue;
 
+    const qtyBefore = Number(stockItem.available_qty);
+    const qtyAfter = Math.max(0, qtyBefore - qtyMT);
+
     await supabase.from('stock').update({
-      available_qty: Math.max(0, Number(stockItem.available_qty) - qtyMT),
+      available_qty: qtyAfter,
       booked_qty: Number(stockItem.booked_qty) + qtyMT,
     }).eq('id', stockItem.id);
+
+    await supabase.from('stock_logs').insert({
+      fertilizer_id: fertilizer.id,
+      product_name: fertilizer.name,
+      product_sku: item.sku,
+      change_type: 'adjustment',
+      quantity_before: qtyBefore,
+      quantity_change: -qtyMT,
+      quantity_after: qtyAfter,
+      reason: 'Stock booked for order',
+    });
   }
 }
 
@@ -70,7 +84,7 @@ export async function releaseStock(items: Array<{sku: string; quantity: number}>
   for (const item of items) {
     const { data: fertilizer } = await supabase
       .from('fertilizers')
-      .select('id, unit_weight_kg')
+      .select('id, unit_weight_kg, name')
       .eq('sku', item.sku)
       .single();
 
@@ -80,16 +94,30 @@ export async function releaseStock(items: Array<{sku: string; quantity: number}>
 
     const { data: stockItem } = await supabase
       .from('stock')
-      .select('id, booked_qty, prepping_qty, available_qty')
+      .select('id, booked_qty, prepping_qty')
       .eq('fertilizer_id', fertilizer.id)
       .single();
 
     if (!stockItem) continue;
 
+    const qtyBefore = Number(stockItem.booked_qty);
+    const qtyAfter = Math.max(0, qtyBefore - qtyMT);
+
     await supabase.from('stock').update({
-      booked_qty: Math.max(0, Number(stockItem.booked_qty) - qtyMT),
+      booked_qty: qtyAfter,
       prepping_qty: Number(stockItem.prepping_qty) + qtyMT,
     }).eq('id', stockItem.id);
+
+    await supabase.from('stock_logs').insert({
+      fertilizer_id: fertilizer.id,
+      product_name: fertilizer.name,
+      product_sku: item.sku,
+      change_type: 'adjustment',
+      quantity_before: qtyBefore,
+      quantity_change: -qtyMT,
+      quantity_after: qtyAfter,
+      reason: 'Stock moved to prepping for order',
+    });
   }
 }
 
@@ -97,7 +125,7 @@ export async function moveToTotal(items: Array<{sku: string; quantity: number}>)
   for (const item of items) {
     const { data: fertilizer } = await supabase
       .from('fertilizers')
-      .select('id, unit_weight_kg')
+      .select('id, unit_weight_kg, name')
       .eq('sku', item.sku)
       .single();
 
@@ -107,14 +135,29 @@ export async function moveToTotal(items: Array<{sku: string; quantity: number}>)
 
     const { data: stockItem } = await supabase
       .from('stock')
-      .select('id, prepping_qty, available_qty')
+      .select('id, prepping_qty, available_qty, booked_qty')
       .eq('fertilizer_id', fertilizer.id)
       .single();
 
     if (!stockItem) continue;
 
+    const qtyBefore = Number(stockItem.prepping_qty);
+    const qtyAfter = Math.max(0, qtyBefore - qtyMT);
+    const totalBefore = Number(stockItem.available_qty) + Number(stockItem.booked_qty) + qtyBefore;
+
     await supabase.from('stock').update({
-      prepping_qty: Math.max(0, Number(stockItem.prepping_qty) - qtyMT),
+      prepping_qty: qtyAfter,
     }).eq('id', stockItem.id);
+
+    await supabase.from('stock_logs').insert({
+      fertilizer_id: fertilizer.id,
+      product_name: fertilizer.name,
+      product_sku: item.sku,
+      change_type: 'stock_out',
+      quantity_before: qtyBefore,
+      quantity_change: -qtyMT,
+      quantity_after: qtyAfter,
+      reason: 'Order picked up - stock dispatched',
+    });
   }
 }

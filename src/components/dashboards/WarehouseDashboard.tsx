@@ -9,7 +9,7 @@ import {
   Package, CheckCircle, Truck, User, Phone,
   Star, Loader2, AlertCircle, Box,
   ClipboardCheck, Search, Warehouse, ArrowRightLeft,
-  Link, MapPinOff
+  Link, MapPinOff, XCircle
 } from 'lucide-react';
 
 interface WarehouseDashboardProps {
@@ -160,24 +160,55 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
 
     switch (selectedRequest.status) {
       case 'released':
+      case 'cleared':
         return (
-          <button
-            onClick={handleBookStock}
-            disabled={isProcessing}
-            className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
-          >
-            {isProcessing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                BOOKING...
-              </>
-            ) : (
-              <>
-                <Box className="w-4 h-4 mr-1" />
-                BOOK STOCK
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={async () => {
+                if (!selectedRequest) return;
+                setIsProcessing(true);
+                await new Promise(resolve => setTimeout(resolve, 500));
+                dispatch({
+                  type: 'CLEAR_FOR_WAREHOUSE',
+                  payload: {
+                    requestId: selectedRequest.id,
+                    user: state.currentUser?.name || 'Warehouse',
+                  },
+                });
+                toast.success('Request accepted', {
+                  description: 'Request accepted. Now you can book stock.',
+                });
+                setIsProcessing(false);
+              }}
+              disabled={isProcessing}
+              className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                  ACCEPTING...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-1" />
+                  ACCEPT
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                dispatch({ type: 'DECLINE_REQUEST', payload: { requestId: selectedRequest.id, reason: 'Declined by warehouse', user: state.currentUser?.name || 'Warehouse' } });
+                toast.error('Request declined', {
+                  description: `Request ${selectedRequest.id} has been declined`,
+                });
+              }}
+              disabled={isProcessing}
+              className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#dc2626] text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+            >
+              <XCircle className="w-4 h-4 mr-1" />
+              DENY
+            </button>
+          </div>
         );
       case 'booking_stock':
         return (
@@ -189,12 +220,12 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
             {isProcessing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                STARTING...
+                PREPARING...
               </>
             ) : (
               <>
                 <ClipboardCheck className="w-4 h-4 mr-1" />
-                START PREPPING
+                PREPARE STOCK
               </>
             )}
           </button>

@@ -515,11 +515,51 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                           DECLINE
                         </button>
                         <button
-                          onClick={() => setShowReleaseModal(true)}
-                          className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 transition-colors rounded"
+                          onClick={async () => {
+                            if (!selectedRequest) return;
+                            setIsProcessing(true);
+                            await new Promise(resolve => setTimeout(resolve, 600));
+                            dispatch({
+                              type: 'APPROVE_INVOICE',
+                              payload: {
+                                requestId: selectedRequest.id,
+                                user: state.currentUser?.name || 'Finance',
+                              },
+                            });
+                            toast.success('Invoice approved', {
+                              description: `Invoice ${selectedRequest.invoiceId} approved and awaiting payment`,
+                            });
+                            setIsProcessing(false);
+                          }}
+                          disabled={isProcessing}
+                          className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
-                          RELEASE
+                          APPROVE
+                        </button>
+                      </>
+                    )}
+                    {selectedRequest.status === 'approved' && (
+                      <>
+                        <button
+                          onClick={() => setShowDeclineModal(true)}
+                          className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#dc2626] text-white hover:bg-red-700 transition-colors rounded"
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          DECLINE
+                        </button>
+                        <button
+                          onClick={() => {
+                            dispatch({ type: 'MARK_INVOICE_PAID', payload: { requestId: selectedRequest.id, user: state.currentUser?.name || 'Finance' } });
+                            dispatch({ type: 'RELEASE_INVOICE', payload: { requestId: selectedRequest.id, user: state.currentUser?.name || 'Finance' } });
+                            toast.success('Payment confirmed', {
+                              description: `Payment for ${selectedRequest.invoiceId} has been confirmed. Sent to Warehouse.`,
+                            });
+                          }}
+                          disabled={isProcessing}
+                          className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#0d9488] text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
+                        >
+                          LKR PAYMENT MADE
                         </button>
                       </>
                     )}

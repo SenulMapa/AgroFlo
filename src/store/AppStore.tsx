@@ -83,6 +83,7 @@ type AppAction =
   | { type: 'APPROVE_REQUEST'; payload: { requestId: string; user: string } }
   | { type: 'DECLINE_REQUEST'; payload: { requestId: string; reason: string; user: string } }
   | { type: 'GENERATE_INVOICE'; payload: { requestId: string; user: string } }
+  | { type: 'APPROVE_INVOICE'; payload: { requestId: string; user: string } }
   | { type: 'RELEASE_INVOICE'; payload: { requestId: string; user: string } }
   | { type: 'DECLINE_INVOICE'; payload: { requestId: string; reason: string; user: string } }
   | { type: 'MARK_INVOICE_PAID'; payload: { requestId: string; user: string } }
@@ -374,6 +375,39 @@ function appReducer(state: AppState, action: AppAction): AppState {
               auditLog: [
                 ...r.auditLog,
                 createAuditLog(user, 'finance', 'INVOICE_GENERATED', `Invoice ${newInvoice.id} generated`),
+              ],
+            };
+          }
+          return r;
+        }),
+      };
+    }
+
+    case 'APPROVE_INVOICE': {
+      const { requestId, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'approved', user, 'finance', 'INVOICE_APPROVED', 'Invoice approved and awaiting payment');
+      }
+      return {
+        ...state,
+        invoices: state.invoices.map(inv => {
+          if (inv.requestId === requestId) {
+            return {
+              ...inv,
+              status: 'approved',
+            };
+          }
+          return inv;
+        }),
+        requests: state.requests.map(r => {
+          if (r.id === requestId) {
+            return {
+              ...r,
+              status: 'approved',
+              auditLog: [
+                ...r.auditLog,
+                createAuditLog(user, 'finance', 'INVOICE_APPROVED', 'Invoice approved and awaiting payment'),
               ],
             };
           }

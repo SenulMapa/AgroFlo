@@ -113,7 +113,7 @@ export interface TransportRequest {
   };
 }
 
-export type InvoiceStatus = 'generated' | 'released' | 'declined' | 'paid';
+export type InvoiceStatus = 'generated' | 'approved' | 'released' | 'declined' | 'paid';
 
 export interface Invoice {
   id: string;
