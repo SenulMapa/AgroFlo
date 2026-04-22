@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { TransportRequest, User, UserRole, Invoice, DriverInfo, DriverBid, StockItem, FertilizerItem, StationInfo, Priority } from '@/types';
 import { getRequests, createRequest, updateRequestStatusWithAudit } from '@/lib/db/requests';
-import { getDrivers, assignDriver } from '@/lib/db/drivers';
+import { getDrivers, assignDriver, submitDriverBid } from '@/lib/db/drivers';
 import { getStock, bookStock, releaseStock, moveToTotal } from '@/lib/db/stock';
 import { getInvoices, generateInvoice, markInvoicePaid } from '@/lib/db/invoices';
 import { getStations } from '@/lib/db/stations';
@@ -689,6 +689,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
     case 'ADD_DRIVER_BID': {
       const { requestId, bid } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        submitDriverBid(req.dbId, bid.driverId, bid.driverName, bid.bidAmount, bid.estimatedTime, bid.distance).catch(err =>
+          console.error('Failed to submit driver bid:', err)
+        );
+      }
       return {
         ...state,
         requests: state.requests.map(r => {

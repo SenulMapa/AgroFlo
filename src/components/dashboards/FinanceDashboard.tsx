@@ -732,6 +732,29 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
               >
                 {isProcessing ? 'Processing...' : 'Release'}
               </button>
+              <button
+                onClick={async () => {
+                  if (!selectedRequest) return;
+                  setIsProcessing(true);
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                  dispatch({
+                    type: 'CLEAR_FOR_WAREHOUSE',
+                    payload: {
+                      requestId: selectedRequest.id,
+                      user: state.currentUser?.name || 'Finance',
+                    },
+                  });
+                  toast.success('Cleared for warehouse', {
+                    description: `Request ${selectedRequest.id} cleared for dispatch`,
+                  });
+                  setIsProcessing(false);
+                  setShowReleaseModal(false);
+                }}
+                disabled={isProcessing}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Clear for Dispatch
+              </button>
             </div>
           </div>
         </div>
