@@ -7,7 +7,8 @@ export async function getRequests(): Promise<TransportRequest[]> {
     .select(`
       *,
       station:stations(id, name, location, district, contact_person, phone),
-      request_items(id, sku, name, fertilizer_type, quantity, unit_cost, tax, total)
+      request_items(id, sku, name, fertilizer_type, quantity, unit_cost, tax, total),
+      audit_logs(id, user_name, user_role, action, details, created_at)
     `)
     .order('created_at', { ascending: false })
     .limit(100);
@@ -66,7 +67,14 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
     })),
     slaDeadline: row.sla_deadline ? parseLocalDate(row.sla_deadline) : new Date(),
     createdByUser: row.created_by_user_id ? String(row.created_by_user_id) : undefined,
-    auditLog: [],
+    auditLog: ((row.audit_logs as Record<string, unknown>[] | undefined) || []).map((a) => ({
+      id: String(a.id),
+      timestamp: parseLocalDate(a.created_at),
+      user: String(a.user_name || ''),
+      role: String(a.user_role || '') as any,
+      action: String(a.action || ''),
+      details: String(a.details || ''),
+    })),
     route: row.route_from && row.route_to ? {
       from: String(row.route_from),
       to: String(row.route_to),
