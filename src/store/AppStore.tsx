@@ -1,9 +1,9 @@
 import { createContext, useContext, useReducer, useEffect, type ReactNode } from 'react';
 import type { TransportRequest, User, UserRole, Invoice, DriverInfo, DriverBid, StockItem, FertilizerItem, StationInfo, Priority } from '@/types';
 import { getRequests, createRequest, updateRequestStatusWithAudit } from '@/lib/db/requests';
-import { getDrivers } from '@/lib/db/drivers';
-import { getStock, bookStock } from '@/lib/db/stock';
-import { getInvoices } from '@/lib/db/invoices';
+import { getDrivers, assignDriver } from '@/lib/db/drivers';
+import { getStock, bookStock, releaseStock, moveToTotal } from '@/lib/db/stock';
+import { getInvoices, generateInvoice, markInvoicePaid } from '@/lib/db/invoices';
 import { getStations } from '@/lib/db/stations';
 
 function restoreDates<T extends { date?: string | Date; slaDeadline?: string | Date; clearedAt?: string | Date; invoiceGeneratedAt?: string | Date; stockBookedAt?: string | Date; driverAssignedAt?: string | Date; pickedUpAt?: string | Date; deliveredAt?: string | Date; generatedAt?: string | Date; releasedAt?: string | Date; paidAt?: string | Date; auditLog?: { timestamp: string | Date }[] }>(data: T[]): T[] {
@@ -90,6 +90,7 @@ type AppAction =
   | { type: 'BOOK_STOCK'; payload: { requestId: string; user: string } }
   | { type: 'START_PREPPING'; payload: { requestId: string; user: string } }
   | { type: 'MARK_PICKED_UP'; payload: { requestId: string; user: string } }
+  | { type: 'MARK_DELIVERED'; payload: { requestId: string; user: string } }
   | { type: 'ASSIGN_DRIVER'; payload: { requestId: string; driver: DriverInfo; user: string } }
   | { type: 'ADD_DRIVER_BID'; payload: { requestId: string; bid: DriverBid } }
   | { type: 'UPDATE_STOCK'; payload: StockItem[] }
@@ -339,17 +340,18 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
-      const invoiceId = `INV-${requestId.split('-')[1]}`;
       const subtotal = request.items.reduce((sum, item) => sum + (item.unitCost * item.quantity), 0);
       const taxTotal = request.items.reduce((sum, item) => sum + item.tax, 0);
       const grandTotal = subtotal + taxTotal;
 
       if (request.dbId) {
-        updateRequestStatusWithAudit(request.dbId, 'invoiced', user, 'finance', 'INVOICE_GENERATED', `Invoice ${invoiceId} generated`);
+        generateInvoice(request.dbId, user, request.items, subtotal, taxTotal, grandTotal).catch(err =>
+          console.error('Failed to generate invoice in DB:', err)
+        );
       }
 
       const newInvoice: Invoice = {
-        id: invoiceId,
+        id: `INV-${requestId.split('-')[1]}`,
         requestId,
         generatedAt: new Date(),
         items: request.items,
@@ -367,11 +369,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
             return {
               ...r,
               status: 'invoiced',
-              invoiceId,
+              invoiceId: newInvoice.id,
               invoiceGeneratedAt: new Date(),
               auditLog: [
                 ...r.auditLog,
-                createAuditLog(user, 'finance', 'INVOICE_GENERATED', `Invoice ${invoiceId} generated`),
+                createAuditLog(user, 'finance', 'INVOICE_GENERATED', `Invoice ${newInvoice.id} generated`),
               ],
             };
           }
@@ -454,7 +456,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const { requestId, user } = action.payload;
       const req = state.requests.find(r => r.id === requestId);
       if (req?.dbId) {
-        updateRequestStatusWithAudit(req.dbId, 'paid', user, 'finance', 'PAYMENT_CONFIRMED', 'Payment confirmed');
+        const invoice = state.invoices.find(inv => inv.requestId === requestId);
+        if (invoice?.id) {
+          markInvoicePaid(invoice.id, invoice.paymentMethod || 'cash').catch(err =>
+            console.error('Failed to mark invoice paid in DB:', err)
+          );
+        }
       }
       return {
         ...state,
@@ -544,6 +551,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
       if (request.dbId) {
         updateRequestStatusWithAudit(request.dbId, 'prepping', user, 'warehouse', 'PREPPING', 'Order being prepared for shipment');
+        releaseStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err =>
+          console.error('Failed to update stock in DB:', err)
+        );
       }
 
       const updatedStock = state.stock.map(stockItem => {
@@ -585,6 +595,9 @@ function appReducer(state: AppState, action: AppAction): AppState {
 
       if (request.dbId) {
         updateRequestStatusWithAudit(request.dbId, 'order_picked_up', user, 'warehouse', 'ORDER_PICKED_UP', 'Driver picked up the order');
+        moveToTotal(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err =>
+          console.error('Failed to update stock in DB:', err)
+        );
       }
 
       const updatedStock = state.stock.map(stockItem => {
@@ -620,11 +633,39 @@ function appReducer(state: AppState, action: AppAction): AppState {
       };
     }
 
+    case 'MARK_DELIVERED': {
+      const { requestId, user } = action.payload;
+      const req = state.requests.find(r => r.id === requestId);
+      if (req?.dbId) {
+        updateRequestStatusWithAudit(req.dbId, 'delivered', user, 'warehouse', 'DELIVERED', 'Order delivered to destination');
+      }
+      return {
+        ...state,
+        requests: state.requests.map(r => {
+          if (r.id === requestId) {
+            return {
+              ...r,
+              status: 'delivered',
+              deliveredAt: new Date(),
+              auditLog: [
+                ...r.auditLog,
+                createAuditLog(user, 'warehouse', 'DELIVERED', `Order delivered to ${r.station.name}`),
+              ],
+            };
+          }
+          return r;
+        }),
+      };
+    }
+
     case 'ASSIGN_DRIVER': {
       const { requestId, driver, user } = action.payload;
       const req = state.requests.find(r => r.id === requestId);
       if (req?.dbId) {
         updateRequestStatusWithAudit(req.dbId, 'driver_assigned', user, 'warehouse', 'DRIVER_ASSIGNED', `Driver ${driver.name} assigned`);
+        assignDriver(req.dbId, driver.id, user).catch(err =>
+          console.error('Failed to assign driver in DB:', err)
+        );
       }
       return {
         ...state,

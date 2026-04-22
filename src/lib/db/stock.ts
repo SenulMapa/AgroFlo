@@ -51,10 +51,18 @@ export async function bookStock(items: Array<{sku: string; quantity: number}>) {
 
     const qtyMT = item.quantity * Number(fertilizer.unit_weight_kg) / 1000;
 
-    await supabase.rpc('book_stock', {
-      p_fertilizer_id: fertilizer.id,
-      p_quantity: qtyMT,
-    });
+    const { data: stockItem } = await supabase
+      .from('stock')
+      .select('id, available_qty, booked_qty')
+      .eq('fertilizer_id', fertilizer.id)
+      .single();
+
+    if (!stockItem) continue;
+
+    await supabase.from('stock').update({
+      available_qty: Math.max(0, Number(stockItem.available_qty) - qtyMT),
+      booked_qty: Number(stockItem.booked_qty) + qtyMT,
+    }).eq('id', stockItem.id);
   }
 }
 
@@ -70,9 +78,43 @@ export async function releaseStock(items: Array<{sku: string; quantity: number}>
 
     const qtyMT = item.quantity * Number(fertilizer.unit_weight_kg) / 1000;
 
-    await supabase.rpc('release_stock', {
-      p_fertilizer_id: fertilizer.id,
-      p_quantity: qtyMT,
-    });
+    const { data: stockItem } = await supabase
+      .from('stock')
+      .select('id, booked_qty, prepping_qty, available_qty')
+      .eq('fertilizer_id', fertilizer.id)
+      .single();
+
+    if (!stockItem) continue;
+
+    await supabase.from('stock').update({
+      booked_qty: Math.max(0, Number(stockItem.booked_qty) - qtyMT),
+      prepping_qty: Number(stockItem.prepping_qty) + qtyMT,
+    }).eq('id', stockItem.id);
+  }
+}
+
+export async function moveToTotal(items: Array<{sku: string; quantity: number}>) {
+  for (const item of items) {
+    const { data: fertilizer } = await supabase
+      .from('fertilizers')
+      .select('id, unit_weight_kg')
+      .eq('sku', item.sku)
+      .single();
+
+    if (!fertilizer) continue;
+
+    const qtyMT = item.quantity * Number(fertilizer.unit_weight_kg) / 1000;
+
+    const { data: stockItem } = await supabase
+      .from('stock')
+      .select('id, prepping_qty, available_qty')
+      .eq('fertilizer_id', fertilizer.id)
+      .single();
+
+    if (!stockItem) continue;
+
+    await supabase.from('stock').update({
+      prepping_qty: Math.max(0, Number(stockItem.prepping_qty) - qtyMT),
+    }).eq('id', stockItem.id);
   }
 }

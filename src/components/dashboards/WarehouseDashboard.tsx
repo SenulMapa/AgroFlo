@@ -261,22 +261,10 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
               setIsProcessing(true);
               await new Promise(resolve => setTimeout(resolve, 500));
               dispatch({
-                type: 'UPDATE_REQUEST',
+                type: 'MARK_DELIVERED',
                 payload: {
-                  ...selectedRequest,
-                  status: 'delivered',
-                  deliveredAt: new Date(),
-                  auditLog: [
-                    ...selectedRequest.auditLog,
-                    {
-                      id: Math.random().toString(36).substr(2, 9),
-                      timestamp: new Date(),
-                      user: state.currentUser?.name || 'Warehouse',
-                      role: 'warehouse',
-                      action: 'DELIVERED',
-                      details: `Order delivered to ${selectedRequest.station.name}`,
-                    },
-                  ],
+                  requestId: selectedRequest.id,
+                  user: state.currentUser?.name || 'Warehouse',
                 },
               });
               toast.success('Order delivered', {

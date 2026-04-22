@@ -95,15 +95,14 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
       console.error('Missing required fields for request creation');
       return;
     }
-    
+
     if (quantity <= 0 || quantity > 10000) {
       alert('Please enter a valid quantity between 1 and 10,000');
       return;
     }
 
     setIsCreating(true);
-    
-    // Fetch unit price from "database"
+
     const ferData = fertilizerPrices.find(p => p.type === fertilizerType);
     if (!ferData) {
       setIsCreating(false);
@@ -112,17 +111,15 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    // stations is now loaded from DB with real UUIDs via useStations() hook
-    const station = stations.find(s => s.id === selectedStation) || stations[0];
-    const itemTotal = ferData.unitCost * quantity;
-    const tax = itemTotal * ferData.taxRate;
-    const orderCreatedDate = new Date();
+    const station = stations.find(s => s.id === selectedStation || s.name === selectedStation) || stations[0];
+    if (!station) {
+      console.error('Station not found');
+      setIsCreating(false);
+      return;
+    }
 
-    const existingIds = requests.map(r => {
-      const match = r.id.match(/REQ-(\d+)/);
-      return match ? parseInt(match[1], 10) : 0;
-    });
-    const nextId = Math.max(...existingIds, 8899) + 1;
+    const tax = ferData.unitCost * quantity * 0.05;
+    const itemTotal = ferData.unitCost * quantity;
 
     dispatch({
       type: 'CREATE_NEW_REQUEST',
@@ -138,7 +135,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
           total: itemTotal + tax,
         }],
         priority,
-        orderCreatedDate,
+        orderCreatedDate: new Date(),
         user: state.currentUser?.id || '',
       },
     });
@@ -148,9 +145,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     setSelectedStation('');
     setFertilizerType('');
     setQuantity(50);
-    toast.success('Fertilizer request created successfully', {
-      description: `Request ID: REQ-${nextId}`,
-    });
+    toast.success('Request created successfully');
   };
 
   const formatDate = (date: Date) => {
@@ -526,14 +521,9 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                   className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
                 >
                   <option value="">Select Station...</option>
-                  <option value="STN-1001">Colombo Central Station</option>
-                  <option value="STN-1002">Kandy District Office</option>
-                  <option value="STN-1003">Galle Regional Hub</option>
-                  <option value="STN-1004">Jaffna Branch</option>
-                  <option value="STN-1005">Matale Supply Point</option>
-                  <option value="STN-1006">Kalutara Distribution Center</option>
-                  <option value="STN-1007">Gampaha Station</option>
-                  <option value="STN-1008">Kurunegala Depot</option>
+                  {stations.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} - {s.district}</option>
+                  ))}
                 </select>
               </div>
 
@@ -682,14 +672,9 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                   className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
                 >
                   <option value="">Select Station...</option>
-                  <option value="STN-1001">Colombo Central Station</option>
-                  <option value="STN-1002">Kandy District Office</option>
-                  <option value="STN-1003">Galle Regional Hub</option>
-                  <option value="STN-1004">Jaffna Branch</option>
-                  <option value="STN-1005">Matale Supply Point</option>
-                  <option value="STN-1006">Kalutara Distribution Center</option>
-                  <option value="STN-1007">Gampaha Station</option>
-                  <option value="STN-1008">Kurunegala Depot</option>
+                  {stations.map(s => (
+                    <option key={s.id} value={s.id}>{s.name} - {s.district}</option>
+                  ))}
                 </select>
               </div>
 
