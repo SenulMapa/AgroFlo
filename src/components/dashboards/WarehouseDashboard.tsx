@@ -30,19 +30,27 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const [activeTab, setActiveTab] = useState<'orders' | 'drivers'>('orders');
 
   const clearedRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'cleared');
+    return requests
+      .filter(r => r.status === 'cleared')
+      .sort((a, b) => (b.clearedAt?.getTime() || 0) - (a.clearedAt?.getTime() || 0));
   }, [requests]);
 
   const bookingStockRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'booking_stock');
+    return requests
+      .filter(r => r.status === 'booking_stock')
+      .sort((a, b) => (b.stockBookedAt?.getTime() || 0) - (a.stockBookedAt?.getTime() || 0));
   }, [requests]);
 
   const preppingRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'prepping');
+    return requests
+      .filter(r => r.status === 'prepping')
+      .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
   }, [requests]);
 
   const pickedUpRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'order_picked_up');
+    return requests
+      .filter(r => r.status === 'order_picked_up')
+      .sort((a, b) => (b.pickedUpAt?.getTime() || 0) - (a.pickedUpAt?.getTime() || 0));
   }, [requests]);
 
   const stats = useMemo(() => ({
@@ -54,23 +62,6 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
 
   const handleSelectRequest = (requestId: string) => {
     dispatch({ type: 'SELECT_REQUEST', payload: requestId });
-  };
-
-  const handleBookStock = async () => {
-    if (!selectedRequest) return;
-
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 600));
-
-    dispatch({
-      type: 'BOOK_STOCK',
-      payload: {
-        requestId: selectedRequest.id,
-        user: state.currentUser?.name || 'Warehouse',
-      },
-    });
-
-    setIsProcessing(false);
   };
 
   const handleStartPrepping = async () => {

@@ -346,7 +346,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const grandTotal = subtotal + taxTotal;
 
       if (request.dbId) {
-        generateInvoice(request.dbId, user, request.items, subtotal, taxTotal, grandTotal).catch(err =>
+        const userId = state.currentUser?.id || '';
+        generateInvoice(request.dbId, userId, request.items, subtotal, taxTotal, grandTotal).catch(err =>
           console.error('Failed to generate invoice in DB:', err)
         );
       }

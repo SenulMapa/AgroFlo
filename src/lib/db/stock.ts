@@ -143,7 +143,6 @@ export async function moveToTotal(items: Array<{sku: string; quantity: number}>)
 
     const qtyBefore = Number(stockItem.prepping_qty);
     const qtyAfter = Math.max(0, qtyBefore - qtyMT);
-    const totalBefore = Number(stockItem.available_qty) + Number(stockItem.booked_qty) + qtyBefore;
 
     await supabase.from('stock').update({
       prepping_qty: qtyAfter,

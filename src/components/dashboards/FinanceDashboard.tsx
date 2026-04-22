@@ -29,15 +29,21 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
   const [showReports, setShowReports] = useState(false);
 
   const pendingFinance = useMemo(() => {
-    return requests.filter(r => r.status === 'pending_finance' || r.status === 'approved');
+    return requests
+      .filter(r => r.status === 'pending_finance' || r.status === 'approved')
+      .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0));
   }, [requests]);
 
   const invoicedRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'invoiced');
+    return requests
+      .filter(r => r.status === 'invoiced')
+      .sort((a, b) => (b.invoiceGeneratedAt?.getTime() || 0) - (a.invoiceGeneratedAt?.getTime() || 0));
   }, [requests]);
 
   const completedInvoices = useMemo(() => {
-    return requests.filter(r => r.status === 'released' || r.status === 'paid' || r.status === 'booking_stock' || r.status === 'prepping' || r.status === 'driver_assigned' || r.status === 'order_picked_up' || r.status === 'delivered');
+    return requests
+      .filter(r => r.status === 'released' || r.status === 'paid' || r.status === 'booking_stock' || r.status === 'prepping' || r.status === 'driver_assigned' || r.status === 'order_picked_up' || r.status === 'delivered')
+      .sort((a, b) => (b.releasedAt?.getTime() || 0) - (a.releasedAt?.getTime() || 0));
   }, [requests]);
 
   const stats = useMemo(() => {
