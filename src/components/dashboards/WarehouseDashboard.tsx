@@ -710,7 +710,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                           <div>
                             <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Payment Status</span>
                             <span className={`text-sm font-medium ${selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'text-[#15803d]' : 'text-orange-600'}`}>
-                              {selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'Payment Made' : 'Pending'}
+                              {selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'cleared' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'Payment Made' : 'Pending'}
                             </span>
                           </div>
                         </div>
@@ -979,7 +979,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
               <div className="flex items-center justify-between">
                 <div className="text-sm text-[#64748b]">
                   Payment Status: <span className={`font-semibold ${selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'text-[#15803d]' : 'text-orange-600'}`}>
-                    {selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'Payment Made' : 'Pending'}
+                    {selectedRequest.status === 'paid' || selectedRequest.status === 'released' || selectedRequest.status === 'cleared' || selectedRequest.status === 'booking_stock' || selectedRequest.status === 'prepping' || selectedRequest.status === 'driver_assigned' || selectedRequest.status === 'order_picked_up' || selectedRequest.status === 'delivered' ? 'Payment Made' : 'Pending'}
                   </span>
                 </div>
                 <button
