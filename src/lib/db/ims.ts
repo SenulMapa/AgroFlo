@@ -226,11 +226,11 @@ export async function addStock(
     return false;
   }
 
-  // Update stock
-  const { error: stockError } = await supabase.rpc('add_stock', {
-    p_fertilizer_id: productId,
-    p_quantity: quantity,
-  });
+  // Update stock directly
+  const { error: stockError } = await supabase
+    .from('stock')
+    .update({ available_qty: quantityAfter })
+    .eq('fertilizer_id', productId);
 
   if (stockError) {
     console.error('Error adding stock:', stockError);
@@ -292,11 +292,11 @@ export async function removeStock(
     return false;
   }
 
-  // Update stock
-  const { error: stockError } = await supabase.rpc('release_stock', {
-    p_fertilizer_id: productId,
-    p_quantity: quantity,
-  });
+  // Update stock directly
+  const { error: stockError } = await supabase
+    .from('stock')
+    .update({ available_qty: quantityAfter })
+    .eq('fertilizer_id', productId);
 
   if (stockError) {
     console.error('Error removing stock:', stockError);
