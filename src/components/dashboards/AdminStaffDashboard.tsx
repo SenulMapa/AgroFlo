@@ -182,7 +182,12 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
     if (!ferData) { setIsEditing(false); return; }
 
     // stations is now loaded from DB with real UUIDs via useStations() hook
-    const station = stations.find(s => s.id === editStation) || stations[0];
+    const station = stations.find(s => s.id === editStation);
+    if (!station) {
+      console.error('Edit station not found:', editStation);
+      setIsEditing(false);
+      return;
+    }
     const itemTotal = ferData.unitCost * editQuantity;
     const tax = itemTotal * ferData.taxRate;
     const items = [{
