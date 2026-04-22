@@ -172,9 +172,6 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
 
     const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId);
     if (!invoice) return;
-    
-    // Use paymentStatus from DB (which comes from invoices.payment_status column)
-    const paymentStatusText = invoice.paymentStatus === 'paid' ? 'PAID' : 'PENDING';
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
@@ -274,9 +271,8 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
     </div>
   </div>
   
-  <div class="footer">
-    <div><strong>Payment Status:</strong> ${paymentStatusText}</div>
-  </div>
+   <div class="footer">
+   </div>
   
   <div class="signature">
     <div class="signature-line"></div>
