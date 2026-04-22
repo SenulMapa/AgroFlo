@@ -254,8 +254,8 @@ function appReducer(state: AppState, action: AppAction): AppState {
         user,
         items.map(i => ({ sku: i.sku, quantity: i.quantity, unitCost: i.unitCost, tax: i.tax, total: i.total, name: i.name, type: i.type }))
       ).then(res => {
-        if (res?.request) {
-          console.log('Request created with DB ID:', res.request.id, 'code:', res.request.request_code);
+        if (res?.request && pendingRequestCallback) {
+          pendingRequestCallback(res.request.request_code, res.request.id);
         }
       }).catch(err => console.error('Failed to create request in DB:', err));
 
@@ -676,14 +676,27 @@ function appReducer(state: AppState, action: AppAction): AppState {
 interface AppContextType {
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  onRequestCreated?: (requestCode: string, dbId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+let pendingRequestCallback: ((requestCode: string, dbId: string) => void) | null = null;
+
+export function setOnRequestCreatedCallback(cb: (requestCode: string, dbId: string) => void) {
+  pendingRequestCallback = cb;
+}
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
-  // Load from Supabase on mount
+  useEffect(() => {
+    pendingRequestCallback = (requestCode: string, dbId: string) => {
+      dispatch({ type: 'SET_REQUEST_DB_ID', payload: { requestCode, dbId } });
+    };
+    return () => { pendingRequestCallback = null; };
+  }, [dispatch]);
+
   useEffect(() => {
     async function loadData() {
       dispatch({ type: 'SET_LOADING', payload: true });
