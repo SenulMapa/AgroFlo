@@ -277,7 +277,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const updatedStock = state.stock.map(stockItem => {
         const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
         if (requestItem) {
-          const qtyMT = requestItem.quantity / 20;
+          const qtyMT = requestItem.quantity * 50 / 1000;
           return {
             ...stockItem,
             available: Math.max(0, stockItem.available - qtyMT),
@@ -601,7 +601,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const updatedStock = state.stock.map(stockItem => {
         const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
         if (requestItem) {
-          const qtyMT = requestItem.quantity / 20;
+          const qtyMT = requestItem.quantity * 50 / 1000;
           return {
             ...stockItem,
             booked: Math.max(0, stockItem.booked - qtyMT),
@@ -645,7 +645,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const updatedStock = state.stock.map(stockItem => {
         const requestItem = request.items.find(ri => ri.sku === stockItem.sku);
         if (requestItem) {
-          const qtyMT = requestItem.quantity / 20;
+          const qtyMT = requestItem.quantity * 50 / 1000;
           return {
             ...stockItem,
             prepping: Math.max(0, stockItem.prepping - qtyMT),
