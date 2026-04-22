@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRequests } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import type { RequestStatus } from '@/types';
@@ -30,21 +30,21 @@ const STATUS_FLOW: { status: RequestStatus; label: string }[] = [
 export function ReceiverPortal({ onLogout }: ReceiverPortalProps) {
   const requests = useRequests();
   const [searchQuery, setSearchQuery] = useState('');
-  const [lastDeliveredId, setLastDeliveredId] = useState<string | null>(null);
+  const notifiedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    const deliveredRequest = requests.find(r => 
-      r.status === 'delivered' && 
-      r.id !== lastDeliveredId &&
-      (!r.lastNotifiedAt || new Date(r.lastNotifiedAt).getTime() < new Date(r.deliveredAt!).getTime())
-    );
-    if (deliveredRequest) {
-      setLastDeliveredId(deliveredRequest.id);
-      toast.success('Delivery confirmed!', {
-        description: `Order ${deliveredRequest.id} has been successfully delivered to ${deliveredRequest.station.name}`,
-      });
-    }
-  }, [requests, lastDeliveredId]);
+    requests.forEach(r => {
+      if (
+        r.status === 'delivered' &&
+        !notifiedRef.current.has(r.id)
+      ) {
+        notifiedRef.current.add(r.id);
+        toast.success('Delivery confirmed!', {
+          description: `Order ${r.id} has been successfully delivered to ${r.station?.name ?? 'destination'}`,
+        });
+      }
+    });
+  }, [requests]);
 
   const foundRequest = useMemo(() => {
     if (!searchQuery.trim()) return null;
