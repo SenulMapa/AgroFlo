@@ -141,6 +141,7 @@ export const generateMockRequests = (): TransportRequest[] => {
       priority: priorities[Math.floor(Math.random() * priorities.length)],
       station: {
         id: `STN-${1000 + stationIdx}`,
+        stationCode: `STN-${1000 + stationIdx}`,
         name: stationNames[stationIdx],
         location: fromDistrict,
         district: fromDistrict,

@@ -25,6 +25,7 @@ export type Priority = 'low' | 'medium' | 'high' | 'critical';
 
 export interface StationInfo {
   id: string;
+  stationCode: string;
   name: string;
   location: string;
   district: string;

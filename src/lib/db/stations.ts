@@ -15,6 +15,7 @@ export async function getStations(): Promise<StationInfo[]> {
 
   return (data || []).map(station => ({
     id: station.id,
+    stationCode: station.station_code || '',
     name: station.name,
     location: station.location,
     district: station.district,

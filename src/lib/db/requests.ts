@@ -42,6 +42,7 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
     priority: String(row.priority || 'medium') as TransportRequest['priority'],
     station: station ? {
       id: String(station.id || ''),
+      stationCode: String(station.station_code || ''),
       name: station.name || '',
       location: station.location || '',
       district: station.district || '',
@@ -49,6 +50,7 @@ function transformRequest(row: Record<string, unknown>): TransportRequest {
       phone: station.phone || '',
     } : {
       id: '',
+      stationCode: '',
       name: '',
       location: '',
       district: '',

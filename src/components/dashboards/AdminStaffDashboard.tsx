@@ -422,7 +422,7 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
                     </div>
                     <div>
                       <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Station ID</span>
-                      <span className="text-sm font-mono font-medium text-[#1e293b]">{selectedRequest.station.id}</span>
+                      <span className="text-sm font-mono font-medium text-[#1e293b]">{selectedRequest.station.stationCode}</span>
                     </div>
                     <div>
                       <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Contact Person</span>
