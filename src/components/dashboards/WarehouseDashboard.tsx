@@ -391,7 +391,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
             DRIVERS
           </button>
           <button
-            onClick={() => window.open('/ims', '_blank')}
+            onClick={() => window.open(window.location.origin + '/ims', '_blank')}
             className="inline-flex items-center gap-2 h-8 px-4 text-xs font-medium bg-white text-[#1e293b] border border-[#e2e8f0] hover:bg-gray-50 transition-colors rounded"
           >
             <Warehouse className="w-4 h-4" />
