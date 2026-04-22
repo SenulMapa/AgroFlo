@@ -29,7 +29,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
 
   const clearedRequests = useMemo(() => {
     return requests
-      .filter(r => r.status === 'cleared')
+      .filter(r => r.status === 'cleared' || r.status === 'paid')
       .sort((a, b) => (b.clearedAt?.getTime() || 0) - (a.clearedAt?.getTime() || 0));
   }, [requests]);
 
@@ -133,6 +133,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
     switch (selectedRequest.status) {
       case 'released':
       case 'cleared':
+      case 'paid':
         return (
           <div className="flex items-center gap-2">
             <button

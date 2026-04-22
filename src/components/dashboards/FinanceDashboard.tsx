@@ -272,7 +272,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
   </div>
   
   <div class="footer">
-    <div><strong>Payment Status:</strong> ${invoice.status === 'paid' ? 'PAYMENT MADE' : invoice.status === 'released' ? 'RELEASED - PENDING PAYMENT' : 'PENDING'}</div>
+    <div><strong>Payment Status:</strong> {invoice.status === 'paid' ? 'PAYMENT MADE' : invoice.status === 'approved' ? 'APPROVED - PENDING PAYMENT' : invoice.status === 'released' ? 'RELEASED - PENDING PAYMENT' : 'PENDING'}</div>
   </div>
   
   <div class="signature">
@@ -460,7 +460,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                       </div>
                       <div className="text-xs text-[#64748b]">{request.station.name}</div>
                       <div className="text-xs text-[#64748b]">
-                        {request.status === 'released' ? 'Released' : request.status === 'paid' ? 'Paid' : 'Processing'}
+                        {request.status === 'paid' ? 'Paid' : request.status === 'approved' ? 'Approved' : request.status === 'released' ? 'Released' : 'Processing'}
                       </div>
                     </div>
                   ))}
