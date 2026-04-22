@@ -111,9 +111,9 @@ export function AdminStaffDashboard({ onLogout }: AdminStaffDashboardProps) {
 
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const station = stations.find(s => s.id === selectedStation || s.name === selectedStation) || stations[0];
+    const station = stations.find(s => s.id === selectedStation);
     if (!station) {
-      console.error('Station not found');
+      console.error('Station not found - selected:', selectedStation, 'available:', stations.map(s => s.id));
       setIsCreating(false);
       return;
     }
