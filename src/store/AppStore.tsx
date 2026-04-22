@@ -386,7 +386,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const { requestId, user } = action.payload;
       const req = state.requests.find(r => r.id === requestId);
       if (req?.dbId) {
-        updateRequestStatusWithAudit(req.dbId, 'released', user, 'finance', 'INVOICE_RELEASED', 'Invoice released to warehouse');
+        updateRequestStatusWithAudit(req.dbId, 'cleared', user, 'finance', 'INVOICE_RELEASED', 'Invoice released and cleared for warehouse dispatch');
       }
       return {
         ...state,
@@ -404,11 +404,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
           if (r.id === requestId) {
             return {
               ...r,
-              status: 'released',
+              status: 'cleared',
               clearedAt: new Date(),
               auditLog: [
                 ...r.auditLog,
-                createAuditLog(user, 'finance', 'INVOICE_RELEASED', 'Invoice released to warehouse'),
+                createAuditLog(user, 'finance', 'INVOICE_RELEASED', 'Invoice released and cleared for warehouse dispatch'),
               ],
             };
           }

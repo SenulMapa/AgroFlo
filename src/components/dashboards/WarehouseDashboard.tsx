@@ -30,7 +30,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const [activeTab, setActiveTab] = useState<'orders' | 'drivers'>('orders');
 
   const clearedRequests = useMemo(() => {
-    return requests.filter(r => r.status === 'cleared' || r.status === 'released');
+    return requests.filter(r => r.status === 'cleared');
   }, [requests]);
 
   const bookingStockRequests = useMemo(() => {
