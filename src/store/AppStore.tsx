@@ -562,7 +562,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       );
 
       if (request.dbId) {
-        updateRequestStatusWithAudit(request.dbId, 'booking_stock', user, 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order');
+        updateRequestStatusWithAudit(request.dbId, 'prepping', user, 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order and ready for prepping');
       }
 
       return {
@@ -571,7 +571,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
           if (r.id === requestId) {
             return {
               ...r,
-              status: 'booking_stock',
+              status: 'prepping',
               stockBookedAt: new Date(),
               auditLog: [
                 ...r.auditLog,

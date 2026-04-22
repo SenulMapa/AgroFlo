@@ -62,23 +62,6 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
     dispatch({ type: 'SELECT_REQUEST', payload: requestId });
   };
 
-  const handleStartPrepping = async () => {
-    if (!selectedRequest) return;
-
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    dispatch({
-      type: 'START_PREPPING',
-      payload: {
-        requestId: selectedRequest.id,
-        user: state.currentUser?.name || 'Warehouse',
-      },
-    });
-
-    setIsProcessing(false);
-  };
-
   const handleMarkPickedUp = async () => {
     if (!selectedRequest) return;
 
@@ -202,19 +185,33 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
       case 'booking_stock':
         return (
           <button
-            onClick={handleStartPrepping}
+            onClick={async () => {
+              if (!selectedRequest) return;
+              setIsProcessing(true);
+              dispatch({
+                type: 'BOOK_STOCK',
+                payload: {
+                  requestId: selectedRequest.id,
+                  user: state.currentUser?.name || 'Warehouse',
+                },
+              });
+              toast.success('Stock booked', {
+                description: `Stock reserved for ${selectedRequest.id}`,
+              });
+              setIsProcessing(false);
+            }}
             disabled={isProcessing}
             className="inline-flex items-center justify-center h-8 px-4 text-xs font-medium bg-[#15803d] text-white hover:bg-green-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors rounded"
           >
             {isProcessing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                PREPARING...
+                BOOKING...
               </>
             ) : (
               <>
-                <ClipboardCheck className="w-4 h-4 mr-1" />
-                PREPARE STOCK
+                <Box className="w-4 h-4 mr-1" />
+                BOOK STOCK
               </>
             )}
           </button>
