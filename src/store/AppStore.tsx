@@ -521,6 +521,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
+      // Update stock in database
+      bookStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err =>
+        console.error('Failed to update stock in DB:', err)
+      );
+
       if (request.dbId) {
         updateRequestStatusWithAudit(request.dbId, 'booking_stock', user, 'warehouse', 'STOCK_BOOKED', 'Stock reserved for order');
       }
@@ -549,11 +554,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
       const request = state.requests.find(r => r.id === requestId);
       if (!request) return state;
 
+      // Update stock in database
+      releaseStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err =>
+        console.error('Failed to update stock in DB:', err)
+      );
+
       if (request.dbId) {
         updateRequestStatusWithAudit(request.dbId, 'prepping', user, 'warehouse', 'PREPPING', 'Order being prepared for shipment');
-        releaseStock(request.items.map(i => ({ sku: i.sku, quantity: i.quantity }))).catch(err =>
-          console.error('Failed to update stock in DB:', err)
-        );
       }
 
       const updatedStock = state.stock.map(stockItem => {
