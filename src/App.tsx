@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppProvider } from '@/store/AppStore';
 import { LoginScreen } from '@/components/login/LoginScreen';
 import { AdminStaffDashboard } from '@/components/dashboards/AdminStaffDashboard';
@@ -6,6 +7,7 @@ import { AdminManagerDashboard } from '@/components/dashboards/AdminManagerDashb
 import { FinanceDashboard } from '@/components/dashboards/FinanceDashboard';
 import { WarehouseDashboard } from '@/components/dashboards/WarehouseDashboard';
 import { ReceiverPortal } from '@/components/dashboards/ReceiverPortal';
+import { IMSDashboard } from '@/components/dashboards/IMSDashboard';
 
 import type { UserRole } from '@/types';
 import { Toaster } from '@/components/ui/sonner';
@@ -43,10 +45,19 @@ function AppContent() {
 
 function App() {
   return (
-    <AppProvider>
-      <AppContent />
-      <Toaster position="top-right" />
-    </AppProvider>
+    <BrowserRouter>
+      <AppProvider>
+        <Routes>
+          <Route path="/" element={<AppContent />} />
+          <Route path="/ims" element={
+            <>
+              <IMSDashboard onLogout={() => window.close()} />
+            </>
+          } />
+        </Routes>
+        <Toaster position="top-right" />
+      </AppProvider>
+    </BrowserRouter>
   );
 }
 
