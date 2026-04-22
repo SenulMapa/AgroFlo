@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react';
-import { useAppStore, useRequests, useSelectedRequest, useDrivers, useStock, useInvoices } from '@/store/AppStore';
+import { useAppStore, useRequests, useSelectedRequest, useDrivers, useInvoices } from '@/store/AppStore';
 import { DashboardHeader } from '../shared/DashboardHeader';
 import { StatusBadge } from '../shared/StatusBadge';
 import { AuditLog } from '../shared/AuditLog';
+import { addStock as imsAddStock, removeStock as imsRemoveStock, getProductsWithStock } from '@/lib/db/ims';
+import type { StockWithLogs } from '@/lib/db/ims';
 import type { DriverInfo } from '@/types';
 import { toast } from 'sonner';
 import {
   Package, CheckCircle, Truck, User, Phone,
   Star, Loader2, AlertCircle, Box,
   ClipboardCheck, Search, Warehouse,
-  Link, MapPinOff, XCircle
+  Link, MapPinOff, XCircle, ArrowDown, ArrowUp, RotateCcw
 } from 'lucide-react';
 
 interface WarehouseDashboardProps {
@@ -27,7 +29,62 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'orders' | 'drivers' | 'ims'>('orders');
-  const stock = useStock();
+
+  // IMS Stock In/Out state
+  const [imsProducts, setImsProducts] = useState<StockWithLogs[]>([]);
+  const [imsStockMode, setImsStockMode] = useState<'view' | 'in' | 'out'>('view');
+  const [imsSelectedProduct, setImsSelectedProduct] = useState('');
+  const [imsQuantity, setImsQuantity] = useState(0);
+  const [imsReason, setImsReason] = useState('');
+  const [isImsSubmitting, setIsImsSubmitting] = useState(false);
+
+  const loadImsProducts = async () => {
+    const products = await getProductsWithStock();
+    setImsProducts(products);
+  };
+
+  // Load IMS products when switching to IMS tab
+  useMemo(() => {
+    if (activeTab === 'ims' && imsProducts.length === 0) {
+      loadImsProducts();
+    }
+  }, [activeTab]);
+
+  const handleImsStockSubmit = async () => {
+    if (!imsSelectedProduct || !imsQuantity || !imsReason) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    setIsImsSubmitting(true);
+    try {
+      const product = imsProducts.find(p => p.fertilizer_id === imsSelectedProduct);
+      if (!product) {
+        toast.error('Product not found');
+        return;
+      }
+      const user = state.currentUser?.name || 'Warehouse';
+      let success = false;
+      if (imsStockMode === 'in') {
+        success = await imsAddStock(imsSelectedProduct, imsQuantity, imsReason, user);
+      } else {
+        success = await imsRemoveStock(imsSelectedProduct, imsQuantity, imsReason, user);
+      }
+      if (success) {
+        toast.success(`Stock ${imsStockMode === 'in' ? 'added' : 'removed'} successfully`);
+        setImsSelectedProduct('');
+        setImsQuantity(0);
+        setImsReason('');
+        setImsStockMode('view');
+        await loadImsProducts();
+      } else {
+        toast.error('Failed to update stock');
+      }
+    } catch (e) {
+      toast.error('Error updating stock');
+    } finally {
+      setIsImsSubmitting(false);
+    }
+  };
 
   const clearedRequests = useMemo(() => {
     return requests
@@ -440,67 +497,173 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {activeTab === 'ims' ? (
-          /* IMS - Stock View */
+{activeTab === 'ims' ? (
+          /* IMS - Stock Management */
           <div className="flex-1 p-4 overflow-auto">
-            <div className="bg-white border border-[#e2e8f0] rounded">
-              <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center justify-between rounded-t">
-                <div className="flex items-center gap-2">
-                  <Warehouse className="w-4 h-4 text-[#15803d]" />
-                  <span className="text-sm font-semibold uppercase tracking-wider text-[#64748b]">
-                    Inventory Management System
-                  </span>
+            {imsStockMode === 'view' ? (
+              <>
+                <div className="bg-white border border-[#e2e8f0] rounded mb-4">
+                  <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center justify-between rounded-t">
+                    <div className="flex items-center gap-2">
+                      <Warehouse className="w-4 h-4 text-[#15803d]" />
+                      <span className="text-sm font-semibold uppercase tracking-wider text-[#64748b]">
+                        Inventory Management System
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setImsStockMode('in')}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                        Stock In
+                      </button>
+                      <button
+                        onClick={() => setImsStockMode('out')}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                        Stock Out
+                      </button>
+                      <button
+                        onClick={loadImsProducts}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-gray-200 text-gray-600 text-xs rounded hover:bg-gray-300"
+                      >
+                        <RotateCcw className="w-3 h-3" />
+                        Refresh
+                      </button>
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr>
+                          <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">SKU</th>
+                          <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Type</th>
+                          <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Product</th>
+                          <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Available (MT)</th>
+                          <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Booked (MT)</th>
+                          <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Prepping (MT)</th>
+                          <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Total (MT)</th>
+                          <th className="text-center font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {imsProducts.map((item, idx) => {
+                          const stockLevel = item.total_qty > 0 ? item.available_qty / item.total_qty : 0;
+                          const statusColor = stockLevel > 0.3 ? 'bg-green-100 text-green-800' : stockLevel > 0.1 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800';
+                          const statusText = stockLevel > 0.3 ? 'In Stock' : stockLevel > 0.1 ? 'Low Stock' : 'Critical';
+                          return (
+                            <tr key={idx} className="border-b border-[#e2e8f0] hover:bg-gray-50">
+                              <td className="py-2 px-3 font-mono text-xs">{item.sku}</td>
+                              <td className="py-2 px-3 text-xs">{item.fertilizer_type}</td>
+                              <td className="py-2 px-3 text-sm">{item.name}</td>
+                              <td className="py-2 px-3 text-right font-mono text-sm text-green-700 font-medium">{item.available_qty?.toFixed(1) || '0'}</td>
+                              <td className="py-2 px-3 text-right font-mono text-sm text-orange-700">{item.booked_qty?.toFixed(1) || '0'}</td>
+                              <td className="py-2 px-3 text-right font-mono text-sm text-indigo-700">{item.prepping_qty?.toFixed(1) || '0'}</td>
+                              <td className="py-2 px-3 text-right font-mono text-sm">{item.total_qty?.toFixed(1) || '0'}</td>
+                              <td className="py-2 px-3 text-center">
+                                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded ${statusColor}`}>
+                                  {statusText}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {imsProducts.length === 0 && (
+                          <tr>
+                            <td colSpan={8} className="py-4 text-center text-[#64748b]">No products found</td>
+                          </tr>
+                        )}
+                      </tbody>
+                      <tfoot className="bg-[#f1f5f9]">
+                        <tr>
+                          <td colSpan={3} className="text-right text-xs font-semibold py-2 px-3">TOTALS:</td>
+                          <td className="text-right font-mono text-sm font-bold text-green-700 py-2 px-3">{imsProducts.reduce((s, i) => s + (i.available_qty || 0), 0).toFixed(1)}</td>
+                          <td className="text-right font-mono text-sm py-2 px-3 text-orange-700">{imsProducts.reduce((s, i) => s + (i.booked_qty || 0), 0).toFixed(1)}</td>
+                          <td className="text-right font-mono text-sm py-2 px-3 text-indigo-700">{imsProducts.reduce((s, i) => s + (i.prepping_qty || 0), 0).toFixed(1)}</td>
+                          <td className="text-right font-mono text-sm font-bold py-2 px-3">{imsProducts.reduce((s, i) => s + (i.total_qty || 0), 0).toFixed(1)}</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 </div>
-                <span className="text-xs text-[#64748b]">{stock.length} products</span>
+              </>
+            ) : (
+              <div className="bg-white border border-[#e2e8f0] rounded max-w-xl mx-auto">
+                <div className="px-4 py-3 border-b border-[#e2e8f0] bg-[#f1f5f9] flex items-center justify-between rounded-t">
+                  <div className="flex items-center gap-2">
+                    {imsStockMode === 'in' ? (
+                      <ArrowDown className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <ArrowUp className="w-4 h-4 text-red-600" />
+                    )}
+                    <span className="text-sm font-semibold uppercase tracking-wider text-[#64748b]">
+                      {imsStockMode === 'in' ? 'Stock In' : 'Stock Out'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setImsStockMode('view');
+                      setImsSelectedProduct('');
+                      setImsQuantity(0);
+                      setImsReason('');
+                    }}
+                    className="text-[#64748b] hover:text-[#1e293b] text-xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Product *</label>
+                    <select
+                      value={imsSelectedProduct}
+                      onChange={(e) => setImsSelectedProduct(e.target.value)}
+                      className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                    >
+                      <option value="">Select Product...</option>
+                      {imsProducts.map(p => (
+                        <option key={p.fertilizer_id} value={p.fertilizer_id}>
+                          {p.name} ({p.sku}) - Available: {p.available_qty?.toFixed(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Quantity (MT) *</label>
+                    <input
+                      type="number"
+                      value={imsQuantity}
+                      onChange={(e) => setImsQuantity(Number(e.target.value))}
+                      min={1}
+                      placeholder="Enter quantity"
+                      className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium uppercase tracking-wider text-[#64748b] block mb-1">Reason *</label>
+                    <input
+                      type="text"
+                      value={imsReason}
+                      onChange={(e) => setImsReason(e.target.value)}
+                      placeholder={imsStockMode === 'in' ? 'Purchase order, Return, etc.' : 'Dispatch, Damaged, etc.'}
+                      className="w-full h-10 px-3 border border-[#e2e8f0] text-sm focus:outline-none focus:border-[#15803d] rounded"
+                    />
+                  </div>
+                  <button
+                    onClick={handleImsStockSubmit}
+                    disabled={isImsSubmitting}
+                    className={`w-full py-2 text-white text-sm font-medium rounded ${
+                      imsStockMode === 'in' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                    } disabled:opacity-50`}
+                  >
+                    {isImsSubmitting ? 'Processing...' : imsStockMode === 'in' ? 'Receive Stock' : 'Dispatch Stock'}
+                  </button>
+                </div>
               </div>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">SKU</th>
-                    <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Type</th>
-                    <th className="text-left font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Product</th>
-                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Available (MT)</th>
-                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Booked (MT)</th>
-                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Prepping (MT)</th>
-                    <th className="text-right font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Total (MT)</th>
-                    <th className="text-center font-semibold text-xs uppercase tracking-wider text-[#64748b] py-2 px-3 border-b border-[#e2e8f0] bg-white h-8">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stock.map((item, idx) => {
-                    const stockLevel = item.total > 0 ? item.available / item.total : 0;
-                    const statusColor = stockLevel > 0.3 ? 'bg-green-100 text-green-800' : stockLevel > 0.1 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800';
-                    const statusText = stockLevel > 0.3 ? 'In Stock' : stockLevel > 0.1 ? 'Low Stock' : 'Critical';
-                    return (
-                      <tr key={idx} className="border-b border-[#e2e8f0]">
-                        <td className="font-mono text-xs py-2 px-3">{item.sku}</td>
-                        <td className="text-xs py-2 px-3">{item.type}</td>
-                        <td className="text-xs py-2 px-3">{item.name}</td>
-                        <td className="text-right font-mono text-xs py-2 px-3 text-green-700 font-medium">{item.available.toFixed(1)}</td>
-                        <td className="text-right font-mono text-xs py-2 px-3 text-orange-700">{item.booked.toFixed(1)}</td>
-                        <td className="text-right font-mono text-xs py-2 px-3 text-indigo-700">{item.prepping.toFixed(1)}</td>
-                        <td className="text-right font-mono text-xs font-medium py-2 px-3">{item.total.toFixed(1)}</td>
-                        <td className="text-center py-2 px-3">
-                          <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded ${statusColor}`}>
-                            {statusText}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot className="bg-[#f1f5f9]">
-                  <tr>
-                    <td colSpan={3} className="text-right text-xs font-semibold py-2 px-3">TOTALS:</td>
-                    <td className="text-right font-mono text-sm font-bold text-green-700 py-2 px-3">{stock.reduce((s, i) => s + i.available, 0).toFixed(1)}</td>
-                    <td className="text-right font-mono text-sm py-2 px-3 text-orange-700">{stock.reduce((s, i) => s + i.booked, 0).toFixed(1)}</td>
-                    <td className="text-right font-mono text-sm py-2 px-3 text-indigo-700">{stock.reduce((s, i) => s + i.prepping, 0).toFixed(1)}</td>
-                    <td className="text-right font-mono text-sm font-bold py-2 px-3">{stock.reduce((s, i) => s + i.total, 0).toFixed(1)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+            )}
           </div>
         ) : activeTab === 'drivers' ? (
           /* Driver Pool View */
