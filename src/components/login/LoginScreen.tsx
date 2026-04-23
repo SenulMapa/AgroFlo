@@ -71,7 +71,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             <Sprout className="w-10 h-10 text-white" />
           </div>
           <h1 className="font-mono text-3xl font-bold text-white tracking-wider drop-shadow-md">
-            AgriFlo
+            AgroFlo
           </h1>
           <p className="text-white mt-2 text-sm font-medium">
             Fertilizer Distribution Management System

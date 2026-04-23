@@ -1,4 +1,4 @@
-// AgriFlo - Agricultural Fertilizer Logistics System
+// AgroFlo - Agricultural Fertilizer Logistics System
 
 export type UserRole = 'admin_staff' | 'admin_manager' | 'finance' | 'warehouse' | 'receiver' | 'inventory_manager' | null;
 

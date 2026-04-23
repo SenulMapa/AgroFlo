@@ -27,7 +27,7 @@ export function DashboardHeader({ title, onLogout }: DashboardHeaderProps) {
           <div className="flex items-center justify-center w-7 h-7 bg-[#15803d] rounded">
             <Sprout className="w-4 h-4 text-white" />
           </div>
-          <span className="font-mono text-lg font-bold text-[#15803d] tracking-wider">AgriFlo</span>
+          <span className="font-mono text-lg font-bold text-[#15803d] tracking-wider">AgroFlo</span>
           <span className="text-[#e2e8f0]">|</span>
           <span className="text-sm font-semibold text-[#1e293b] uppercase tracking-wider">{title}</span>
         </div>
