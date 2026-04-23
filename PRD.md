@@ -1,4 +1,4 @@
-# AgriFlo — Fertilizer Distribution Management System
+# AgroFlo — Fertilizer Distribution Management System
 
 ## Product Requirements Document (PRD)
 
@@ -13,7 +13,7 @@
 
 ### 1.1 Purpose
 
-AgriFlo is a web-based fertilizer logistics management system for the **State Fertilizer Corporation (SFC)**. It streamlines the end-to-end process of fertilizer request creation, approval, invoicing, stock management, and distribution tracking — from station-level request submission through to final delivery.
+AgroFlo is a web-based fertilizer logistics management system for the **State Fertilizer Corporation (SFC)**. It streamlines the end-to-end process of fertilizer request creation, approval, invoicing, stock management, and distribution tracking — from station-level request submission through to final delivery.
 
 ### 1.2 Scope
 

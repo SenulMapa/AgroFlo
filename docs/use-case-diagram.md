@@ -1,4 +1,4 @@
-# AgriFlo — Use Case Diagram
+# AgroFlo — Use Case Diagram
 
 ## PlantUML Source
 
@@ -14,7 +14,7 @@ actor "Finance" as finance
 actor "Warehouse Officer" as warehouse
 actor "Receiver" as receiver
 
-rectangle "AgriFlo System" {
+rectangle "AgroFlo System" {
   usecase "Create Fertilizer Request" as UC1
   usecase "Edit/Rename Request" as UC2
   usecase "View Requests" as UC3
@@ -94,7 +94,7 @@ flowchart LR
     Warehouse["👤 Warehouse Officer"]
     Receiver["👤 Receiver"]
 
-    subgraph "AgriFlo System"
+    subgraph "AgroFlo System"
         direction TB
 
         Request["📝 Request Management"]

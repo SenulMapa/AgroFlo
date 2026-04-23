@@ -1,4 +1,4 @@
-# AgriFlo — High-Level Architecture Diagram
+# AgroFlo — High-Level Architecture Diagram
 
 ## Mermaid Diagram
 
