@@ -526,11 +526,10 @@ UPDATE transport_requests SET status='cleared' WHERE invoice_id='${invoiceId}';`
       const { requestId, user } = action.payload;
       const req = state.requests.find(r => r.id === requestId);
       if (req?.dbId) {
-        const invoice = state.invoices.find(inv => inv.requestId === requestId);
+        const invoice = state.invoices.find(inv => inv.requestId === req?.dbId);
         if (invoice?.id) {
           const invoiceId = invoice.id;
           const paymentMethod = invoice.paymentMethod || 'cash';
-          // Debug log BEFORE the SQL call
           logDebugAction(
             'MARK_INVOICE_PAID',
             'invoice',
@@ -547,10 +546,11 @@ UPDATE transport_requests SET status='paid' WHERE invoice_id = '${invoiceId}';`,
       return {
         ...state,
         invoices: state.invoices.map(inv => {
-          if (inv.requestId === requestId) {
+          if (inv.requestId === req?.dbId) {
             return {
               ...inv,
               status: 'paid',
+              paymentStatus: 'paid',
               paidAt: new Date(),
             };
           }

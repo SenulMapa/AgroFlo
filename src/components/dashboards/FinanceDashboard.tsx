@@ -170,7 +170,7 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
   const handlePrintInvoice = () => {
     if (!selectedRequest?.invoiceId) return;
 
-    const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId);
+    const invoice = invoices.find(inv => inv.requestId === selectedRequest.dbId);
     if (!invoice) return;
 
     const printWindow = window.open('', '_blank');
@@ -598,8 +598,8 @@ export function FinanceDashboard({ onLogout }: FinanceDashboardProps) {
                     </div>
                     <div className="p-4">
                       {(() => {
-                        // Match by invoice code (id or invoice_code)
-                        const invoice = invoices.find(inv => inv.id === selectedRequest.invoiceId || inv.id === selectedRequest.invoiceId);
+                        // Match by request ID (not invoice ID)
+                        const invoice = invoices.find(inv => inv.requestId === selectedRequest.dbId);
                         if (!invoice) return null;
                         return (
                           <div className="grid grid-cols-3 gap-4">

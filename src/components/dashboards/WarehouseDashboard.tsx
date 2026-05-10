@@ -88,8 +88,8 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
 
   const clearedRequests = useMemo(() => {
     return requests
-      .filter(r => r.status === 'paid')  // Only show requests with payment confirmed
-      .sort((a, b) => (b.paidAt?.getTime() || 0) - (a.paidAt?.getTime() || 0));
+      .filter(r => r.status === 'cleared')  // Show requests cleared by finance
+      .sort((a, b) => (b.clearedAt?.getTime() || 0) - (a.clearedAt?.getTime() || 0));
   }, [requests]);
 
   const bookingStockRequests = useMemo(() => {
@@ -799,7 +799,7 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
               </div>
 
               {/* Prepping Queue */}
-              <div className="flex-1 flex flex-col">
+              <div className="flex-1 flex flex-col border-b border-[#e2e8f0]">
                 <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9]">
                   <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">
                     Prepping ({preppingRequests.length})
@@ -823,6 +823,41 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                             <span className="font-mono text-xs font-semibold">{request.id}</span>
                           </div>
                           <div className="text-xs text-[#64748b]">{request.station.name}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Picked Up Queue */}
+              <div className="flex-1 flex flex-col">
+                <div className="px-3 py-2 border-b border-[#e2e8f0] bg-[#f1f5f9]">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-[#64748b]">
+                    Picked Up ({pickedUpRequests.length})
+                  </span>
+                </div>
+                <div className="flex-1 overflow-auto">
+                  {pickedUpRequests.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-[#64748b]">No items picked up</div>
+                  ) : (
+                    <div className="divide-y divide-[#e2e8f0]">
+                      {pickedUpRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          onClick={() => handleSelectRequest(request.id)}
+                          className={`p-3 cursor-pointer hover:bg-[#f0fdf4] transition-colors ${
+                            selectedRequest?.id === request.id ? 'bg-[#f0fdf4] border-l-[3px] border-l-[#15803d]' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            {getStatusIcon(request.status)}
+                            <span className="font-mono text-xs font-semibold">{request.id}</span>
+                          </div>
+                          <div className="text-xs text-[#64748b]">{request.station.name}</div>
+                          {request.assignedDriver && (
+                            <div className="text-xs text-[#64748b]">{request.assignedDriver.name} • {request.assignedDriver.licensePlate}</div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -871,18 +906,18 @@ export function WarehouseDashboard({ onLogout }: WarehouseDashboardProps) {
                             <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Invoice ID</span>
                             <span className="text-sm font-mono font-medium text-[#1e293b]">{selectedRequest.invoiceId}</span>
                           </div>
-                          <div>
-                            <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Payment Status</span>
-                            <span className={`text-sm font-medium ${(() => {
-                              const inv = invoices.find(i => i.id === selectedRequest.invoiceId || i.id === selectedRequest.invoiceId);
-                              return inv?.paymentStatus === 'paid' ? 'text-[#15803d]' : 'text-orange-600';
-                            })()}`}>
-                              {(() => {
-                                const inv = invoices.find(i => i.id === selectedRequest.invoiceId || i.id === selectedRequest.invoiceId);
-                                return inv?.paymentStatus === 'paid' ? 'PAID' : 'PENDING';
-                              })()}
-                            </span>
-                          </div>
+<div>
+                              <span className="text-xs text-[#64748b] uppercase tracking-wider block mb-1">Payment Status</span>
+                              <span className={`text-sm font-medium ${(() => {
+                                const inv = invoices.find(i => i.requestId === selectedRequest.dbId);
+                                return inv?.paymentStatus === 'paid' ? 'text-[#15803d]' : 'text-orange-600';
+                              })()}`}>
+                                {(() => {
+                                  const inv = invoices.find(i => i.requestId === selectedRequest.dbId);
+                                  return inv?.paymentStatus === 'paid' ? 'PAID' : 'PENDING';
+                                })()}
+                              </span>
+                            </div>
                         </div>
                       </div>
                     </div>
